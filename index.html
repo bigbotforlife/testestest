@@ -1,10 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Volleyball Duel</title>
+<title>Sports Duel</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 * { box-sizing: border-box; }
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -15,6 +15,7 @@ canvas { display: block; margin: 10px auto; width: 96%; max-width: 900px; backgr
 button { padding: 12px 25px; margin: 8px; border: 3px solid #1d1d1b; border-radius: 3px; background: #f2b134; color: #1d1d1b; font-family: inherit; font-size: 17px; font-weight: bold; cursor: pointer; box-shadow: 4px 4px 0 #1d1d1b; }
 button:hover { background: #f7c35c; }
 button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #1d1d1b; }
+button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 #1d1d1b; }
 .controls { line-height: 1.8; color: #3a362e; margin: 22px 12px 12px; }
 .abilities { color: #a3401f; font-weight: bold; }
 .credit { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #dce6f5; background: rgba(0,0,0,0.4); padding: 4px 7px; border-radius: 5px; z-index: 1000; }
@@ -32,13 +33,35 @@ button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #1d1d1b; }
 }
 
 #menu { position: fixed; inset: 0; background: #2b6f73; display: flex; justify-content: center; align-items: center; z-index: 2000; }
-.menu-content { background: #f4ecd8; border: 4px solid #1d1d1b; border-radius: 3px; box-shadow: 10px 10px 0 #c9501f; padding: 35px; width: 90%; max-width: 430px; }
+.menu-content { position: relative; z-index: 1; background: #f4ecd8; border: 4px solid #1d1d1b; border-radius: 3px; box-shadow: 10px 10px 0 #c9501f; padding: 32px; width: 92%; max-width: 450px; max-height: 92vh; overflow-y: auto; }
 .menu-content h1 { font-size: 35px; margin-bottom: 10px; }
-.menu-content p { color: #3a362e; margin-bottom: 25px; }
-.menu-button { display: block; width: 100%; margin: 15px auto; padding: 18px; font-size: 22px; }
+.menu-content p { color: #3a362e; margin-bottom: 20px; }
+.menu-button { display: block; width: 100%; margin: 12px auto; padding: 16px; font-size: 20px; }
+.back-button { font-size: 15px; padding: 10px; background: #e3d6b8; }
+.back-button:hover { background: #ebe0c7; }
 #gameArea { display: none; }
-#menuBg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.menu-content { position: relative; z-index: 1; }
+
+/* ONLINE LOBBY STYLES */
+.room-code-wrap { background: #ece3cf; border: 3px solid #1d1d1b; padding: 12px; margin: 12px 0; box-shadow: 4px 4px 0 #1d1d1b; }
+.room-code-label { font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #5c5549; text-transform: uppercase; }
+.room-code { font-family: Impact, "Arial Black", sans-serif; font-size: 38px; letter-spacing: 6px; color: #c9501f; margin: 4px 0; }
+.copy-btn { padding: 6px 14px; font-size: 13px; margin: 4px 0 0; }
+.code-input {
+  width: 100%; padding: 14px; font-family: Impact, "Arial Black", sans-serif;
+  font-size: 30px; letter-spacing: 8px; text-align: center; text-transform: uppercase;
+  border: 3px solid #1d1d1b; border-radius: 3px; background: #fffdf7; color: #1d1d1b;
+  box-shadow: 4px 4px 0 #1d1d1b; margin-bottom: 12px; outline: none;
+}
+.code-input:focus { background: #ffffff; border-color: #c9501f; }
+.lobby-list { text-align: left; margin: 14px 0; border: 3px solid #1d1d1b; background: #fffdf7; }
+.lobby-slot { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 2px solid #e3d6b8; font-size: 14px; font-weight: bold; }
+.lobby-slot:last-child { border-bottom: none; }
+.slot-badge { display: inline-block; padding: 2px 8px; border: 2px solid #1d1d1b; color: #fff; font-size: 12px; margin-right: 8px; }
+.net-msg { font-size: 14px; font-weight: bold; color: #a3401f; min-height: 20px; margin: 8px 0; }
+.online-banner {
+  display: inline-block; background: #f4ecd8; border: 3px solid #1d1d1b;
+  box-shadow: 4px 4px 0 #1d1d1b; padding: 6px 14px; font-size: 14px; font-weight: bold; margin-bottom: 4px;
+}
 </style>
 </head>
 <body>
@@ -48,40 +71,83 @@ button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #1d1d1b; }
 <canvas id="menuBg"></canvas>
 <div class="menu-content">
 <h1>Sports Duel</h1>
+
 <div id="modeStep">
 <p>Select your game mode!</p>
 <button class="menu-button" onclick="chooseMode(1)">1 VS 1</button>
 <button class="menu-button" onclick="chooseMode(2)">2 VS 2</button>
 </div>
+
 <div id="oppStep" style="display:none">
-<p>Who are you playing against?</p>
-<button class="menu-button" onclick="chooseOpponent(false)">With Someone</button>
-<button class="menu-button" onclick="chooseOpponent(true)">Solo (vs Bot)</button>
-<button class="menu-button" style="font-size:16px;padding:10px" onclick="showModeStep()">← BACK</button>
+<p id="oppPrompt">Who are you playing against?</p>
+<button class="menu-button" id="sameKbBtn" onclick="chooseOpponent('local')">Same Keyboard</button>
+<button class="menu-button" onclick="chooseOpponent('online')">Online (Room Code)</button>
+<button class="menu-button" id="soloBotBtn" onclick="chooseOpponent('bot')">Solo (vs Bot)</button>
+<button class="menu-button back-button" onclick="showModeStep()">← BACK</button>
 </div>
+
 <div id="diffStep" style="display:none">
 <p>Pick a bot difficulty!</p>
 <button class="menu-button" onclick="chooseDifficulty('easy')">Easy</button>
 <button class="menu-button" onclick="chooseDifficulty('medium')">Medium</button>
 <button class="menu-button" onclick="chooseDifficulty('hard')">Hard</button>
-<button class="menu-button" style="font-size:16px;padding:10px" onclick="chooseMode(1)">← BACK</button>
+<button class="menu-button back-button" onclick="chooseMode(1)">← BACK</button>
 </div>
+
+<div id="onlineStep" style="display:none">
+<p>Play across different laptops!</p>
+<button class="menu-button" onclick="startHosting()">CREATE ROOM</button>
+<button class="menu-button" onclick="openJoinStep()">JOIN ROOM</button>
+<button class="menu-button back-button" onclick="chooseMode(pendingMode)">← BACK</button>
+</div>
+
+<div id="hostLobbyStep" style="display:none">
+<div class="room-code-wrap">
+<div class="room-code-label">Share This Room Code</div>
+<div class="room-code" id="hostRoomCode">....</div>
+<button class="copy-btn" id="copyCodeBtn" onclick="copyRoomCode()">COPY CODE</button>
+</div>
+<div class="lobby-list" id="hostRoster"></div>
+<div class="net-msg" id="hostStatus">Creating room...</div>
+<button class="menu-button" id="hostContinueBtn" onclick="showStep('sportStep')" disabled>CHOOSE SPORT →</button>
+<button class="menu-button back-button" onclick="leaveOnlineToMenu()">← CANCEL ROOM</button>
+</div>
+
+<div id="joinStep" style="display:none">
+<p>Enter the 4-letter room code:</p>
+<input type="text" id="joinCodeInput" class="code-input" maxlength="4" placeholder="ABCD" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter') joinRoom()">
+<button class="menu-button" id="joinSubmitBtn" onclick="joinRoom()">CONNECT</button>
+<div class="net-msg" id="joinStatus"></div>
+<button class="menu-button back-button" onclick="leaveOnlineToMenu('onlineStep')">← BACK</button>
+</div>
+
+<div id="guestLobbyStep" style="display:none">
+<div class="room-code-wrap">
+<div class="room-code-label">Connected To Room</div>
+<div class="room-code" id="guestRoomCode">----</div>
+</div>
+<div class="lobby-list" id="guestRoster"></div>
+<div class="net-msg" id="guestStatus">Waiting for host to pick a sport...</div>
+<button class="menu-button back-button" onclick="leaveOnlineToMenu()">← LEAVE ROOM</button>
+</div>
+
 <div id="sportStep" style="display:none">
 <p>Select your sport!</p>
-<button class="menu-button" onclick="startGame(pendingMode,'volleyball')">Volleyball</button>
-<button class="menu-button" onclick="startGame(pendingMode,'badminton')">Badminton</button>
-<button class="menu-button" onclick="startGame(pendingMode,'tennis')">Tennis</button>
-<button class="menu-button" style="font-size:16px;padding:10px" onclick="showModeStep()">← BACK</button>
+<button class="menu-button" onclick="hostOrLocalStart('volleyball')">Volleyball</button>
+<button class="menu-button" onclick="hostOrLocalStart('badminton')">Badminton</button>
+<button class="menu-button" onclick="hostOrLocalStart('tennis')">Tennis</button>
+<button class="menu-button back-button" onclick="backFromSport()">← BACK</button>
 </div>
 </div>
 </div>
 
 <div id="gameArea">
 <h1 id="gameTitle">Volleyball Duel</h1>
+<div id="onlineBanner" class="online-banner" style="display:none"></div>
 <div id="score">0 - 0</div>
 <canvas id="game" width="900" height="500"></canvas>
-<button onclick="restart()">RESTART GAME</button>
-<button onclick="backToMenu()">MAIN MENU</button>
+<button id="restartBtn" onclick="restart()">RESTART GAME</button>
+<button id="menuBtn" onclick="backToMenu()">MAIN MENU</button>
 <div class="controls" id="controlsDisplay"></div>
 </div>
 
@@ -106,11 +172,15 @@ return e.key.toLowerCase();
 }
 
 document.addEventListener("keydown", e => {
+if (document.activeElement && document.activeElement.tagName === "INPUT") return;
 const key = normalizeKey(e);
 if (["arrowup","arrowdown","arrowleft","arrowright"," ","enter","shift"].includes(key) || key.startsWith("numpad")) {
 e.preventDefault();
 }
-if (!keys[key]) pressed[key] = true;
+if (!keys[key]) {
+pressed[key] = true;
+if (netMode === "guest") queueGuestPulse(key);
+}
 keys[key] = true;
 });
 
@@ -119,7 +189,415 @@ document.addEventListener("keyup", e => { keys[normalizeKey(e)] = false; });
 // Release all keys if the window loses focus
 window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
 
+// ==========================================
+// ONLINE MULTIPLAYER (PEERJS WEBRTC)
+// ==========================================
+const PEER_PREFIX = "sports-duel-yash-";
+let netMode = null; // null | "host" | "guest"
+let peer = null;
+let roomCode = "";
+let mySlot = 0;
+let hostConns = {}; // slot -> DataConnection (host only)
+let guestConn = null; // DataConnection to host (guest only)
+let roster = []; // array of { slot, name, connected, isHost }
+let remoteInputs = {}; // slot -> { left, right, pulse: { jump, slide, set, spike } }
+let guestPulse = { jump: false, slide: false, set: false, spike: false };
+
+function generateRoomCode() {
+const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+let code = "";
+for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+return code;
+}
+
+function slotMeta(mode, slot) {
+if (mode === 1) {
+return slot === 0
+? { label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 }
+: { label: "PLAYER 2 (RED)", color: "#ff4b55", side: 1 };
+}
+const list = [
+{ label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 },
+{ label: "PLAYER 2 (BLUE)", color: "#55b5ff", side: 0 },
+{ label: "PLAYER 3 (RED)", color: "#ff4b55", side: 1 },
+{ label: "PLAYER 4 (RED)", color: "#ff858a", side: 1 }
+];
+return list[slot];
+}
+
+function initRoster(mode) {
+const count = mode === 1 ? 2 : 4;
+roster = [];
+for (let i = 0; i < count; i++) {
+roster.push({
+slot: i,
+occupied: i === 0,
+isHost: i === 0,
+status: i === 0 ? "You (Host)" : "Open Slot"
+});
+}
+}
+
+function renderRoster(containerId) {
+const el = document.getElementById(containerId);
+el.innerHTML = roster.map(r => {
+const m = slotMeta(pendingMode, r.slot);
+const isMe = r.slot === mySlot;
+const tag = isMe ? (r.isHost ? "You (Host)" : "You") : (r.occupied ? (r.isHost ? "Host" : "Connected") : "Waiting...");
+return `<div class="lobby-slot">
+<span><span class="slot-badge" style="background:${m.color}">${m.label}</span></span>
+<span style="color:${r.occupied ? "#1d1d1b" : "#8c8270"}">${tag}</span>
+</div>`;
+}).join("");
+}
+
+function cleanupNetwork() {
+Object.values(hostConns).forEach(c => { try { c.close(); } catch (_) {} });
+hostConns = {};
+if (guestConn) { try { guestConn.close(); } catch (_) {} guestConn = null; }
+if (peer) { try { peer.destroy(); } catch (_) {} peer = null; }
+netMode = null;
+roomCode = "";
+mySlot = 0;
+remoteInputs = {};
+guestPulse = { jump: false, slide: false, set: false, spike: false };
+}
+
+function leaveOnlineToMenu(targetStep = "modeStep") {
+cleanupNetwork();
+showStep(targetStep);
+}
+
+function copyRoomCode() {
+if (!roomCode) return;
+navigator.clipboard.writeText(roomCode).then(() => {
+const btn = document.getElementById("copyCodeBtn");
+btn.textContent = "COPIED!";
+setTimeout(() => { btn.textContent = "COPY CODE"; }, 1500);
+});
+}
+
+function startHosting() {
+if (typeof Peer === "undefined") {
+alert("PeerJS failed to load. Check your internet connection and reload.");
+return;
+}
+cleanupNetwork();
+netMode = "host";
+mySlot = 0;
+initRoster(pendingMode);
+showStep("hostLobbyStep");
+document.getElementById("hostRoomCode").textContent = "....";
+document.getElementById("hostStatus").textContent = "Creating room...";
+document.getElementById("hostContinueBtn").disabled = true;
+renderRoster("hostRoster");
+
+function tryCreatePeer() {
+const candidate = generateRoomCode();
+const p = new Peer(PEER_PREFIX + candidate);
+
+p.on("open", () => {
+peer = p;
+roomCode = candidate;
+document.getElementById("hostRoomCode").textContent = roomCode;
+document.getElementById("hostStatus").textContent = "Waiting for players to join...";
+});
+
+p.on("error", err => {
+if (err.type === "unavailable-id") {
+p.destroy();
+tryCreatePeer();
+} else {
+document.getElementById("hostStatus").textContent = "Connection error: " + err.type;
+}
+});
+
+p.on("connection", conn => {
+conn.on("open", () => {
+// Assign slots in balanced order: [0, 1] for 1v1; [0, 2, 1, 3] for 2v2
+const order = pendingMode === 1 ? [0, 1] : [0, 2, 1, 3];
+const openSlot = order.find(s => !roster[s].occupied);
+
+if (openSlot === undefined || gameStarted) {
+conn.send({ type: "full" });
+setTimeout(() => conn.close(), 200);
+return;
+}
+
+hostConns[openSlot] = conn;
+roster[openSlot].occupied = true;
+remoteInputs[openSlot] = { left: false, right: false, pulse: { jump: false, slide: false, set: false, spike: false } };
+
+conn.send({ type: "welcome", slot: openSlot, mode: pendingMode, code: roomCode, roster });
+broadcastLobby();
+updateHostLobbyUI();
+});
+
+conn.on("data", data => {
+const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
+if (isNaN(slot) || !data) return;
+if (data.type === "input" && remoteInputs[slot]) {
+remoteInputs[slot].left = !!data.keys.left;
+remoteInputs[slot].right = !!data.keys.right;
+if (data.pulse) {
+if (data.pulse.jump) remoteInputs[slot].pulse.jump = true;
+if (data.pulse.slide) remoteInputs[slot].pulse.slide = true;
+if (data.pulse.set) remoteInputs[slot].pulse.set = true;
+if (data.pulse.spike) remoteInputs[slot].pulse.spike = true;
+}
+}
+});
+
+conn.on("close", () => {
+const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
+if (!isNaN(slot)) {
+delete hostConns[slot];
+delete remoteInputs[slot];
+if (roster[slot]) roster[slot].occupied = false;
+broadcastLobby();
+updateHostLobbyUI();
+if (gameStarted) {
+document.getElementById("onlineBanner").textContent = `ROOM ${roomCode} · PLAYER ${slot + 1} DISCONNECTED`;
+}
+}
+});
+});
+}
+
+tryCreatePeer();
+}
+
+function broadcastLobby() {
+Object.values(hostConns).forEach(c => {
+if (c.open) c.send({ type: "lobby", mode: pendingMode, code: roomCode, roster });
+});
+}
+
+function updateHostLobbyUI() {
+renderRoster("hostRoster");
+const connectedCount = roster.filter(r => r.occupied).length;
+const continueBtn = document.getElementById("hostContinueBtn");
+const statusEl = document.getElementById("hostStatus");
+if (connectedCount >= 2) {
+continueBtn.disabled = false;
+statusEl.textContent = `${connectedCount}/${roster.length} players ready!`;
+} else {
+continueBtn.disabled = true;
+statusEl.textContent = "Waiting for at least 1 opponent to join...";
+}
+}
+
+function openJoinStep() {
+cleanupNetwork();
+document.getElementById("joinCodeInput").value = "";
+document.getElementById("joinStatus").textContent = "";
+document.getElementById("joinSubmitBtn").disabled = false;
+showStep("joinStep");
+setTimeout(() => document.getElementById("joinCodeInput").focus(), 50);
+}
+
+function joinRoom() {
+const raw = document.getElementById("joinCodeInput").value.trim().toUpperCase();
+const statusEl = document.getElementById("joinStatus");
+if (raw.length !== 4) {
+statusEl.textContent = "Please enter a 4-letter room code.";
+return;
+}
+if (typeof Peer === "undefined") {
+statusEl.textContent = "PeerJS failed to load. Check internet connection.";
+return;
+}
+
+cleanupNetwork();
+netMode = "guest";
+roomCode = raw;
+document.getElementById("joinSubmitBtn").disabled = true;
+statusEl.textContent = `Connecting to room ${raw}...`;
+
+const p = new Peer();
+peer = p;
+
+const connectTimeout = setTimeout(() => {
+if (!guestConn || !guestConn.open) {
+statusEl.textContent = "Could not reach room. Check code and try again.";
+document.getElementById("joinSubmitBtn").disabled = false;
+cleanupNetwork();
+}
+}, 8000);
+
+p.on("open", () => {
+const conn = p.connect(PEER_PREFIX + raw, { reliable: true });
+guestConn = conn;
+
+conn.on("open", () => {
+clearTimeout(connectTimeout);
+document.getElementById("joinSubmitBtn").disabled = false;
+});
+
+conn.on("data", data => {
+if (!data) return;
+if (data.type === "full") {
+clearTimeout(connectTimeout);
+cleanupNetwork();
+showStep("joinStep");
+document.getElementById("joinStatus").textContent = "Room is full or match already started.";
+document.getElementById("joinSubmitBtn").disabled = false;
+} else if (data.type === "welcome") {
+mySlot = data.slot;
+pendingMode = data.mode;
+roster = data.roster;
+document.getElementById("guestRoomCode").textContent = data.code;
+renderRoster("guestRoster");
+showStep("guestLobbyStep");
+} else if (data.type === "lobby") {
+pendingMode = data.mode;
+roster = data.roster;
+renderRoster("guestRoster");
+} else if (data.type === "start") {
+startGuestGame(data.mode, data.sport);
+} else if (data.type === "restart") {
+score1 = 0; score2 = 0; gameOver = false; particles = [];
+updateScore();
+} else if (data.type === "menu") {
+gameStarted = false;
+document.getElementById("gameArea").style.display = "none";
+document.getElementById("menu").style.display = "flex";
+showStep("guestLobbyStep");
+} else if (data.type === "state") {
+applyNetworkState(data);
+}
+});
+
+conn.on("close", () => {
+clearTimeout(connectTimeout);
+if (gameStarted) {
+alert("Host disconnected from the room.");
+backToMenu();
+} else {
+cleanupNetwork();
+showStep("joinStep");
+document.getElementById("joinStatus").textContent = "Disconnected from host.";
+}
+});
+});
+
+p.on("error", err => {
+clearTimeout(connectTimeout);
+document.getElementById("joinSubmitBtn").disabled = false;
+statusEl.textContent = err.type === "peer-unavailable"
+? "Room not found. Double-check the 4-letter code."
+: "Network error: " + err.type;
+cleanupNetwork();
+});
+}
+
+function queueGuestPulse(key) {
+if (key === "w" || key === "arrowup") guestPulse.jump = true;
+if (key === "s" || key === "arrowdown") guestPulse.slide = true;
+if (key === "e" || key === "shift") guestPulse.set = true;
+if (key === "q" || key === "enter") guestPulse.spike = true;
+sendGuestInput();
+}
+
+function sendGuestInput() {
+if (netMode !== "guest" || !guestConn || !guestConn.open || !gameStarted) return;
+const left = !!(keys["a"] || keys["arrowleft"]);
+const right = !!(keys["d"] || keys["arrowright"]);
+guestConn.send({
+type: "input",
+keys: { left, right },
+pulse: { ...guestPulse }
+});
+guestPulse.jump = false;
+guestPulse.slide = false;
+guestPulse.set = false;
+guestPulse.spike = false;
+}
+
+function applyHostNetworkInputs() {
+if (netMode !== "host") return;
+
+// Allow Host (Player 1) to use either WASD+QE or Arrows+Shift/Enter
+if (keys["arrowleft"]) keys["a"] = true;
+if (keys["arrowright"]) keys["d"] = true;
+if (pressed["arrowup"]) pressed["w"] = true;
+if (pressed["arrowdown"]) pressed["s"] = true;
+if (pressed["shift"]) pressed["e"] = true;
+if (pressed["enter"]) pressed["q"] = true;
+
+for (const slotStr in remoteInputs) {
+const slot = Number(slotStr);
+const p = players[slot];
+const inp = remoteInputs[slot];
+if (!p || !inp) continue;
+
+keys[p.left] = inp.left;
+keys[p.right] = inp.right;
+if (inp.pulse.jump) pressed[p.jump] = true;
+if (inp.pulse.slide) pressed[p.slide] = true;
+if (inp.pulse.set) pressed[p.set] = true;
+if (inp.pulse.spike) pressed[p.spike] = true;
+
+inp.pulse.jump = false;
+inp.pulse.slide = false;
+inp.pulse.set = false;
+inp.pulse.spike = false;
+}
+}
+
+function broadcastGameState() {
+if (netMode !== "host" || !gameStarted) return;
+const conns = Object.values(hostConns).filter(c => c.open);
+if (conns.length === 0) return;
+
+const r1 = n => Math.round(n * 10) / 10;
+const packet = {
+type: "state",
+s1: score1,
+s2: score2,
+go: gameOver,
+p: players.map(pl => ({
+x: r1(pl.x), y: r1(pl.y), vx: r1(pl.vx), vy: r1(pl.vy),
+st: pl.slideTimer, ef: pl.effect, et: pl.effectTimer
+})),
+b: { x: r1(ball.x), y: r1(ball.y), vx: r1(ball.vx), vy: r1(ball.vy) },
+pt: particles.slice(0, 30).map(pt => ({ x: r1(pt.x), y: r1(pt.y), l: pt.life, c: pt.color }))
+};
+conns.forEach(c => c.send(packet));
+}
+
+function applyNetworkState(data) {
+if (score1 !== data.s1 || score2 !== data.s2) {
+score1 = data.s1;
+score2 = data.s2;
+updateScore();
+}
+gameOver = data.go;
+if (data.p && players.length === data.p.length) {
+data.p.forEach((sp, i) => {
+players[i].x = sp.x;
+players[i].y = sp.y;
+players[i].vx = sp.vx;
+players[i].vy = sp.vy;
+players[i].slideTimer = sp.st;
+players[i].effect = sp.ef;
+players[i].effectTimer = sp.et;
+});
+}
+if (data.b) {
+ball.x = data.b.x;
+ball.y = data.b.y;
+ball.vx = data.b.vx;
+ball.vy = data.b.vy;
+}
+if (data.pt) {
+particles = data.pt.map(pt => ({ x: pt.x, y: pt.y, vx: 0, vy: 0, life: pt.l, color: pt.c }));
+}
+}
+
+// ==========================================
 // PLAYER CREATION
+// ==========================================
 function createPlayer(x, side, color, c) {
 return {
 x, y: ground - 60, vx: 0, vy: 0, color,
@@ -208,8 +686,7 @@ mctx.beginPath(); mctx.arc(-17, 0, 14, -0.9, 0.9); mctx.stroke();
 mctx.beginPath(); mctx.arc(17, 0, 14, Math.PI - 0.9, Math.PI + 0.9); mctx.stroke();
 } else if (it.kind === "birdie") {
 mctx.fillStyle = "#ffffff";
-mctx.beginPath();
-mctx.moveTo(4, -5); mctx.lineTo(-17, -13); mctx.lineTo(-17, 13); mctx.lineTo(4, 5);
+mctx.beginPath(); mctx.moveTo(4, -5); mctx.lineTo(-17, -13); mctx.lineTo(-17, 13); mctx.lineTo(4, 5);
 mctx.closePath(); mctx.fill(); mctx.stroke();
 mctx.fillStyle = "#e8c27a";
 mctx.beginPath(); mctx.arc(8, 0, 7, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
@@ -257,7 +734,7 @@ requestAnimationFrame(menuBgFrame);
 requestAnimationFrame(menuBgFrame);
 
 function showStep(id) {
-["modeStep", "oppStep", "diffStep", "sportStep"].forEach(s => {
+["modeStep", "oppStep", "diffStep", "onlineStep", "hostLobbyStep", "joinStep", "guestLobbyStep", "sportStep"].forEach(s => {
 document.getElementById(s).style.display = s === id ? "block" : "none";
 });
 }
@@ -265,12 +742,17 @@ document.getElementById(s).style.display = s === id ? "block" : "none";
 function chooseMode(m) {
 pendingMode = m;
 pendingBot = null;
-showStep(m === 1 ? "oppStep" : "sportStep");
+document.getElementById("oppPrompt").textContent = m === 1 ? "Who are you playing against?" : "How are you playing 2v2?";
+document.getElementById("sameKbBtn").textContent = m === 1 ? "Same Keyboard" : "Same Keyboard (4P)";
+document.getElementById("soloBotBtn").style.display = m === 1 ? "block" : "none";
+showStep("oppStep");
 }
 
-function chooseOpponent(solo) {
+function chooseOpponent(type) {
 pendingBot = null;
-showStep(solo ? "diffStep" : "sportStep");
+if (type === "local") showStep("sportStep");
+else if (type === "online") showStep("onlineStep");
+else if (type === "bot") showStep("diffStep");
 }
 
 function chooseDifficulty(level) {
@@ -279,31 +761,81 @@ showStep("sportStep");
 }
 
 function showModeStep() {
+cleanupNetwork();
 pendingBot = null;
 showStep("modeStep");
 }
 
-function startGame(mode, s) {
+function backFromSport() {
+if (netMode === "host") showStep("hostLobbyStep");
+else if (pendingBot) showStep("diffStep");
+else showStep("oppStep");
+}
+
+function hostOrLocalStart(s) {
+if (netMode === "host") {
+Object.values(hostConns).forEach(c => {
+if (c.open) c.send({ type: "start", mode: pendingMode, sport: s });
+});
+}
+startGame(pendingMode, s);
+}
+
+function setupGameScreen(mode, s) {
 gameMode = mode;
 sport = s || "volleyball";
 document.getElementById("gameTitle").textContent = TITLES[sport];
 canvas.style.background = THEMES[sport].bg;
 document.getElementById("menu").style.display = "none";
 document.getElementById("gameArea").style.display = "block";
-bot = (mode === 1 && pendingBot) ? { level: pendingBot, timer: 0, noise: 0, pred: { x: 720, t: 99 }, wait: BOT_LEVELS[pendingBot].serveDelay } : null;
-gameStarted = true;
 score1 = 0; score2 = 0;
 gameOver = false;
 particles = [];
 createPlayers();
-restartBall(Math.random() < 0.5 ? 0 : 1);
 updateScore();
 updateControls();
+}
+
+function startGame(mode, s) {
+setupGameScreen(mode, s);
+bot = (mode === 1 && pendingBot && !netMode)
+? { level: pendingBot, timer: 0, noise: 0, pred: { x: 720, t: 99 }, wait: BOT_LEVELS[pendingBot].serveDelay }
+: null;
+gameStarted = true;
+restartBall(Math.random() < 0.5 ? 0 : 1);
+}
+
+function startGuestGame(mode, s) {
+bot = null;
+setupGameScreen(mode, s);
+gameStarted = true;
 }
 
 // CONTROL DISPLAY
 function updateControls() {
 const display = document.getElementById("controlsDisplay");
+const banner = document.getElementById("onlineBanner");
+const restartBtn = document.getElementById("restartBtn");
+const menuBtn = document.getElementById("menuBtn");
+
+if (netMode) {
+const m = slotMeta(gameMode, mySlot);
+banner.style.display = "inline-block";
+banner.innerHTML = `ROOM: <span style="color:#c9501f">${roomCode}</span> · YOU ARE <span style="color:${m.color}">${m.label}</span>`;
+restartBtn.style.display = netMode === "host" ? "inline-block" : "none";
+menuBtn.textContent = "LEAVE ROOM";
+display.innerHTML = `
+<b style="color:${m.color}">YOUR CONTROLS (${m.label})</b><br>
+Move: A / D (or ← / →) | Jump: W (or ↑)<br>
+<span class="abilities">Slide: S / ↓ | Set: E / SHIFT | Spike: Q / ENTER</span>
+<br><br>
+First ${gameMode === 1 ? "player" : "team"} to 10 points wins!`;
+return;
+}
+
+banner.style.display = "none";
+restartBtn.style.display = "inline-block";
+menuBtn.textContent = "MAIN MENU";
 
 if (gameMode === 1) {
 display.innerHTML = `
@@ -346,7 +878,6 @@ medium: { react: 14, err: 40, move: 0.85, setRange: 98, setProb: 0.7, spike: 0.3
 hard: { react: 2, err: 5, move: 1, setRange: 105, setProb: 1, spike: 0.9, slide: 1, ready: 670, serveDelay: 40 }
 };
 
-// Simulates the ball forward (same physics as updateBall) to find where it lands
 function predictLanding() {
 let x = ball.x, y = ball.y, vx = ball.vx, vy = ball.vy;
 const r = ball.r;
@@ -370,7 +901,6 @@ if (!bot) return;
 const p = players[1];
 const L = BOT_LEVELS[bot.level];
 
-// the bot owns the red player's keys: clear them every step
 keys[p.left] = false; keys[p.right] = false;
 delete pressed[p.jump]; delete pressed[p.slide]; delete pressed[p.set]; delete pressed[p.spike];
 
@@ -389,7 +919,6 @@ else if (Math.abs(p.x - ball.x) < 10 && grounded) pressed[p.jump] = true;
 } else {
 bot.wait = L.serveDelay;
 
-// never touch the ball early on the human's serve, or again after our own serve
 if (!waitingOnServe && !afterOwnServe) {
 if (--bot.timer <= 0) {
 bot.timer = L.react;
@@ -400,7 +929,6 @@ pr = bot.pred;
 mySide = ball.x > netX || pr.x > netX;
 
 if (mySide) {
-// stand just right of the ball so the hit sends it back toward the net
 const near = ball.x > netX && Math.abs(ball.x - p.x) < 110;
 target = near ? ball.x + 12 + bot.noise * 0.3 : pr.x + 18 + bot.noise;
 target = Math.max(netX + 40, target);
@@ -416,7 +944,6 @@ if (Math.random() < L.spike) pressed[p.spike] = true;
 pressed[p.set] = true;
 }
 
-// jump to go for a spike when the ball is high near the net
 if (grounded && L.spike > 0 && ball.x > 480 && ball.x < 570 && ball.y > 150 && ball.y < 300 &&
 ball.vy > -1 && Math.abs(p.x - ball.x) < 45 && Math.random() < L.spike * 0.12) {
 pressed[p.jump] = true;
@@ -430,7 +957,6 @@ if (Math.abs(dx) > 6 && Math.random() < L.move) {
 if (dx < 0) keys[p.left] = true; else keys[p.right] = true;
 }
 
-// slide to reach a far-away ball that is about to land
 if (mySide && pr && pr.t < 28 && Math.abs(dx) > 100 && grounded && p.slideTimer === 0 && Math.random() < L.slide * 0.25) {
 pressed[p.slide] = true;
 }
@@ -438,6 +964,7 @@ pressed[p.slide] = true;
 
 // RETURN TO MENU
 function backToMenu() {
+cleanupNetwork();
 gameStarted = false;
 document.getElementById("menu").style.display = "flex";
 showModeStep();
@@ -458,6 +985,7 @@ ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: 15 
 
 // RESTART GAME
 function restart() {
+if (netMode === "guest") return;
 score1 = 0; score2 = 0;
 gameOver = false;
 particles = [];
@@ -472,6 +1000,10 @@ p.effect = ""; p.effectTimer = 0;
 
 restartBall(Math.random() < 0.5 ? 0 : 1);
 updateScore();
+
+if (netMode === "host") {
+Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "restart" }); });
+}
 }
 
 function updateScore() { scoreDisplay.textContent = score1 + " - " + score2; }
@@ -490,8 +1022,6 @@ createParticles(p.x, p.y, p.color);
 }
 
 function ballDistance(p) { return Math.hypot(ball.x - p.x, ball.y - (p.y - 10)); }
-
-// Ball must be on the player's own side of the net
 function ballOnOwnSide(p) { return p.side === 0 ? ball.x <= netX : ball.x >= netX; }
 
 // SLIDE
@@ -512,8 +1042,8 @@ abilityEffect(p, "SLIDE");
 // SET
 function setBall(p) {
 if (p.setCooldown > 0) return;
-if (serveInProgress) return; // no set during the serve
-if (!ballOnOwnSide(p)) return; // can't reach across the net
+if (serveInProgress) return;
+if (!ballOnOwnSide(p)) return;
 if (ballDistance(p) > 105) return;
 
 p.setCooldown = 35;
@@ -527,8 +1057,8 @@ abilityEffect(p, "SET");
 // SPIKE
 function spikeBall(p) {
 if (p.spikeCooldown > 0) return;
-if (serveInProgress) return; // no spike during the serve
-if (!ballOnOwnSide(p)) return; // can't reach across the net
+if (serveInProgress) return;
+if (!ballOnOwnSide(p)) return;
 if (ballDistance(p) > 115) return;
 if (p.y >= ground - 62) return;
 
@@ -658,14 +1188,11 @@ if (ball.x < ball.r) { ball.x = ball.r; ball.vx *= -0.85; }
 if (ball.x > WIDTH - ball.r) { ball.x = WIDTH - ball.r; ball.vx *= -0.85; }
 if (ball.y < ball.r) { ball.y = ball.r; ball.vy *= -0.85; }
 
-// Net: one check, only active within the net's actual width
 if (Math.abs(ball.x - netX) < ball.r + 5 && ball.y + ball.r > 315) {
 if (ball.y < 315 && ball.vy > 0) {
-// landing on top of the net
 ball.y = 315 - ball.r;
 ball.vy *= -0.6;
 } else {
-// hitting the side of the net
 ball.x = ball.x < netX ? netX - 5 - ball.r : netX + 5 + ball.r;
 ball.vx *= -0.8;
 }
@@ -673,7 +1200,6 @@ ball.vx *= -0.8;
 
 collideBall();
 
-// Ground = point
 if (ball.y + ball.r >= ground) {
 if (ball.x < netX) { score2++; restartBall(1); }
 else { score1++; restartBall(0); }
@@ -776,11 +1302,10 @@ ctx.fillText(p.effect, p.x, p.y - 55);
 }
 }
 
-// BALL DRAWING
-// RACQUET (badminton + tennis)
+// RACQUET
 function drawRacquet(p) {
 const d = p.side === 0 ? 1 : -1;
-let a = -1.0; // resting: angled up toward the net
+let a = -1.0;
 if (p.slideTimer > 0) a = 0.1;
 else if (p.effectTimer > 0) a = p.effect === "SPIKE" ? 0.6 : -1.5;
 const theta = d === 1 ? a : Math.PI - a;
@@ -789,7 +1314,7 @@ const handle = 16;
 const hx = sx + Math.cos(theta) * handle, hy = sy + Math.sin(theta) * handle;
 const big = sport === "tennis";
 const rx = big ? 18 : 15, ry = big ? 13 : 10;
-const cx = hx + Math.cos(theta) * rx, cy = hy + Math.sin(theta) * rx;
+const cx = hx + Math.cos(theta) * rx, cy = hy + Math.sin(theta) * ry;
 
 ctx.lineCap = "round";
 ctx.strokeStyle = "#222";
@@ -842,7 +1367,7 @@ ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
 ctx.stroke();
 }
 
-// BIRDIE (shuttlecock): cork leads, feathers trail
+// BIRDIE
 function drawBirdie() {
 const moving = Math.hypot(ball.vx, ball.vy) > 0.5;
 const ang = moving ? Math.atan2(ball.vy, ball.vx) : Math.PI / 2;
@@ -918,7 +1443,7 @@ ctx.fillText(score1 > score2 ? "BLUE WINS!" : "RED WINS!", WIDTH / 2, 220);
 
 ctx.fillStyle = "white";
 ctx.font = "25px Arial";
-ctx.fillText("Click RESTART GAME to play again", WIDTH / 2, 275);
+ctx.fillText(netMode === "guest" ? "Waiting for host to restart..." : "Click RESTART GAME to play again", WIDTH / 2, 275);
 }
 
 function draw() {
@@ -930,7 +1455,7 @@ drawParticles();
 if (gameOver) drawGameOver();
 }
 
-// GAME LOOP (fixed 60 Hz timestep, so speed is the same on any monitor)
+// GAME LOOP (fixed 60 Hz timestep)
 const STEP = 1000 / 60;
 let lastTime = 0, acc = 0;
 
@@ -939,11 +1464,19 @@ acc += Math.min(t - lastTime, 100);
 lastTime = t;
 
 while (acc >= STEP) {
-if (gameStarted && !gameOver) {
+if (gameStarted) {
+if (netMode === "guest") {
+sendGuestInput();
+} else {
+if (!gameOver) {
+applyHostNetworkInputs();
 botControl();
 movePlayers();
 updateBall();
 updateParticles();
+}
+broadcastGameState();
+}
 }
 for (const key in pressed) delete pressed[key];
 acc -= STEP;
@@ -957,9 +1490,3 @@ requestAnimationFrame(loop);
 </script>
 </body>
 </html>
-
-
-
-
-
-
