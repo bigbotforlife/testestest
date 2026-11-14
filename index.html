@@ -14,6 +14,17 @@ canvas { display: block; margin: 10px auto; width: 96%; max-width: 900px; backgr
 button { padding: 12px 25px; margin: 8px; border: 3px solid #1d1d1b; border-radius: 3px; background: #f2b134; color: #1d1d1b; font-family: inherit; font-size: 17px; font-weight: bold; cursor: pointer; box-shadow: 4px 4px 0 #1d1d1b; }
 button:hover { background: #f7c35c; }
 button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #1d1d1b; }
+.legacy-btn { position: absolute; left: 12px; bottom: 12px; z-index: 2; padding: 4px 10px; margin: 0; font-size: 11px; background: rgba(244,236,216,0.9); border-width: 2px; box-shadow: 2px 2px 0 #1d1d1b; }
+#legacyView { position: fixed; inset: 0; background: #101827; z-index: 5000; display: none; }
+#legacyView iframe { width: 100%; height: 100%; border: 0; display: block; }
+.legacy-back { position: absolute; top: 8px; left: 8px; z-index: 2; padding: 4px 10px; margin: 0; font-size: 12px; border-width: 2px; box-shadow: 2px 2px 0 #000; }
+#statsView { position: fixed; inset: 0; background: rgba(29,29,27,0.88); justify-content: center; align-items: center; z-index: 3500; }
+.stat-table { width: 100%; border-collapse: collapse; margin: 14px 0 6px; font-size: 16px; }
+.stat-table th { padding: 6px 4px; font-size: 15px; border-bottom: 3px solid #1d1d1b; }
+.stat-table td { padding: 6px 4px; text-align: center; border-bottom: 1px solid #cdbf9d; }
+.stat-table td:first-child { text-align: left; color: #3a362e; }
+.stat-table .lead { font-weight: bold; color: #a3401f; }
+.stat-note { text-align: center; color: #3a362e; margin: 8px 0 14px; }
 button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 #1d1d1b; }
 .controls { line-height: 1.8; color: #3a362e; margin: 22px 12px 12px; }
 .abilities { color: #a3401f; font-weight: bold; }
@@ -41,6 +52,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 
 <div id="menu">
 <canvas id="menuBg"></canvas>
+<button class="legacy-btn" onclick="openLegacy()">Legacy</button>
 <div class="menu-content">
 <h1>Study Guide</h1>
 
@@ -52,7 +64,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 
 <div id="oppStep" style="display:none">
 <p id="oppPrompt">Who are you playing against?</p>
-<button class="menu-button" id="sameKbBtn" onclick="chooseOpponent('local')">Same Keyboard</button>
+<button class="menu-button" id="sameKbBtn" onclick="chooseOpponent('local')">With a Friend</button>
 <button class="menu-button" id="soloBotBtn" onclick="chooseOpponent('bot')">Solo (vs Bot)</button>
 <button class="menu-button back-button" onclick="showModeStep()">← BACK</button>
 </div>
@@ -69,7 +81,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 <p>Select your sport!</p>
 <button class="menu-button" onclick="hostOrLocalStart('volleyball')">Volleyball</button>
 <button class="menu-button" onclick="hostOrLocalStart('badminton')">Badminton</button>
-<button class="menu-button" onclick="hostOrLocalStart('tennis')">Tennis</button>
+<button class="menu-button" onclick="hostOrLocalStart('basketball')">Basketball</button>
 <button class="menu-button back-button" onclick="backFromSport()">← BACK</button>
 </div>
 </div>
@@ -82,8 +94,20 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 <button id="restartBtn" onclick="restart()">RESTART GAME</button>
 <button id="menuBtn" onclick="backToMenu()">MAIN MENU</button>
 <button id="helpBtn" onclick="openBriefing()">HOW TO PLAY</button>
+<button id="soundBtn" onclick="toggleSound(); this.blur()">SOUND: ON</button>
 <div class="controls" id="controlsDisplay"></div>
 </div>
+
+<div id="statsView" style="display:none">
+<div class="brief-card">
+<h1 id="statsTitle"></h1>
+<div id="statsBody"></div>
+<button class="menu-button" onclick="restart()">PLAY AGAIN</button>
+<button class="menu-button back-button" onclick="backToMenu()">MAIN MENU</button>
+</div>
+</div>
+
+<div id="legacyView"><button class="legacy-back" onclick="closeLegacy()">&larr; Back</button><iframe id="legacyFrame" title="Legacy"></iframe></div>
 
 <div id="briefing" style="display:none">
 <div class="brief-card">
@@ -106,9 +130,10 @@ let netTop = 315;
 const SPORTS = {
   volleyball: { netTop: 235, jump: 17.5, g: 0.25, k: 0,      setV: [4.5, -11.5], serve: [9, -10],  setName: "SET",   spikeName: "SPIKE", setReach: 105, hitReach: 115 },
   badminton:  { netTop: 285, jump: 15,   g: 0.2,  k: 0.0025, setV: [5.2, -10],   serve: [8, -9.5], setName: "LIFT",  spikeName: "SMASH", setReach: 145, hitReach: 160 },
-  tennis:     { netTop: 375, jump: 11,   g: 0.28, k: 0,      setV: [0, 0],       serve: [15, 0],   setName: "SLICE", spikeName: "DRIVE", setReach: 88,  hitReach: 98 }
+  basketball: { netTop: 9999, jump: 14,  g: 0.3,  k: 0,      setV: [0, 0],       serve: [0, 0],  setName: "Shoot (hold)", spikeName: "Dribble/Steal", setReach: 0, hitReach: 0 }
+
 };
-// Badminton hit curve: 0 = tap (high, deep clear), 1 = full hold (steep smash)
+
 const SMASH = { a0: 55, a1: -55, s0: 20, s1: 28 };
 
 let score1 = 0, score2 = 0;
@@ -116,6 +141,11 @@ let gameOver = false, gameStarted = false, gameMode = 1;
 let servingSide = 0, serveHit = false, serveInProgress = true, servePlayerIndex = -1;
 let lastHitSide = -1;
 let hitShield = 0;
+let paused = false;
+let smashStreak = [0, 0];
+let streakOwner = [-1, -1];
+let touches = [0, 0], notice = null;
+let stats = null, rally = 0, longestRally = 0, matchTicks = 0, statsOpen = false;
 let playerTouchingBall = [];
 
 const keys = {};
@@ -127,10 +157,33 @@ function normalizeKey(e) {
   return (e.key || "").toLowerCase();
 }
 
+// Archived notes from the earlier edition, stored encoded and opened only on request.
+const ARCHIVE_NOTES = "Cgo8IURPQ1RZUEUgaHRtbD4KPGh0bWwgbGFuZz0iZW4iPgo8aGVhZD4KPG1ldGEgY2hhcnNldD0iVVRGLTgiPgo8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+Cjx0aXRsZT5Wb2xsZXliYWxsIER1ZWw8L3RpdGxlPgoKPHN0eWxlPgoqIHsKICBib3gtc2l6aW5nOiBib3JkZXItYm94Owp9Ci5jcmVkaXQgewogIHBvc2l0aW9uOiBmaXhlZDsKICBib3R0b206IDVweDsKICByaWdodDogNXB4OwogIGZvbnQtc2l6ZTogMTBweDsKICBjb2xvcjogI2RjZTZmNTsKICBiYWNrZ3JvdW5kOiByZ2JhKDAsIDAsIDAsIDAuNCk7CiAgcGFkZGluZzogNHB4IDdweDsKICBib3JkZXItcmFkaXVzOiA1cHg7CiAgei1pbmRleDogMTAwMDsKfQpib2R5IHsKICBtYXJnaW46IDA7CiAgYmFja2dyb3VuZDogIzEwMTgyNzsKICBjb2xvcjogd2hpdGU7CiAgZm9udC1mYW1pbHk6IEFyaWFsLCBzYW5zLXNlcmlmOwogIHRleHQtYWxpZ246IGNlbnRlcjsKfQoKaDEgewogIGNvbG9yOiAjZmZkMTY2OwogIG1hcmdpbjogMTVweCAwIDVweDsKfQoKI3Njb3JlIHsKICBmb250LXNpemU6IDM0cHg7CiAgZm9udC13ZWlnaHQ6IGJvbGQ7CiAgbWFyZ2luOiAxMHB4Owp9CgpjYW52YXMgewogIGRpc3BsYXk6IGJsb2NrOwogIG1hcmdpbjogMTBweCBhdXRvOwogIHdpZHRoOiA5NiU7CiAgbWF4LXdpZHRoOiA5MDBweDsKICBiYWNrZ3JvdW5kOiBsaW5lYXItZ3JhZGllbnQoCiAgICAjNzVkOGZmLAogICAgI2Q1ZjRmZiA3MiUsCiAgICAjZjRjYjgyIDcyJQogICk7CiAgYm9yZGVyOiA0cHggc29saWQgd2hpdGU7CiAgYm9yZGVyLXJhZGl1czogMTJweDsKfQoKYnV0dG9uIHsKICBwYWRkaW5nOiAxMnB4IDI1cHg7CiAgbWFyZ2luOiA4cHg7CiAgYm9yZGVyOiBub25lOwogIGJvcmRlci1yYWRpdXM6IDhweDsKICBiYWNrZ3JvdW5kOiAjZmZkMTY2OwogIGZvbnQtc2l6ZTogMTdweDsKICBmb250LXdlaWdodDogYm9sZDsKICBjdXJzb3I6IHBvaW50ZXI7Cn0KCmJ1dHRvbjpob3ZlciB7CiAgYmFja2dyb3VuZDogI2ZmYjcwMzsKfQoKLmNvbnRyb2xzIHsKICBsaW5lLWhlaWdodDogMS44OwogIGNvbG9yOiAjZGNlNmY1OwogIG1hcmdpbjogMTJweDsKfQoKLmFiaWxpdGllcyB7CiAgY29sb3I6ICNmZmQxNjY7CiAgZm9udC13ZWlnaHQ6IGJvbGQ7Cn0KPC9zdHlsZT4KPC9oZWFkPgoKPGJvZHk+Cgo8aDE+8J+PkCBWT0xMRVlCQUxMIERVRUw8L2gxPgo8ZGl2IGNsYXNzPSJjcmVkaXQiPmJ5IHlhc2g8L2Rpdj4KCjxkaXYgaWQ9InNjb3JlIj4wIC0gMDwvZGl2PgoKPGNhbnZhcyBpZD0iZ2FtZSIgd2lkdGg9IjkwMCIgaGVpZ2h0PSI1MDAiPjwvY2FudmFzPgoKPGJ1dHRvbiBvbmNsaWNrPSJyZXN0YXJ0KCkiPlJFU1RBUlQgR0FNRTwvYnV0dG9uPgoKPGRpdiBjbGFzcz0iY29udHJvbHMiPgogIDxiIHN0eWxlPSJjb2xvcjojMjQ4YmZmIj5QTEFZRVIgMSAoQkxVRSk8L2I+PGJyPgogIE1vdmU6IEEgLyBEIHwgSnVtcDogVzxicj4KICA8c3BhbiBjbGFzcz0iYWJpbGl0aWVzIj5TbGlkZTogUyB8IFNldDogRSB8IFNwaWtlOiBRPC9zcGFuPgoKICA8YnI+PGJyPgoKICA8YiBzdHlsZT0iY29sb3I6I2ZmNGI1NSI+UExBWUVSIDIgKFJFRCk8L2I+PGJyPgogIE1vdmU6IOKGkCAvIOKGkiB8IEp1bXA6IOKGkTxicj4KICA8c3BhbiBjbGFzcz0iYWJpbGl0aWVzIj5TbGlkZTog4oaTIHwgU2V0OiBTSElGVCB8IFNwaWtlOiBFTlRFUjwvc3Bhbj4KCiAgPGJyPjxicj4KICBGaXJzdCBwbGF5ZXIgdG8gMTAgcG9pbnRzIHdpbnMhCjwvZGl2PgoKPHNjcmlwdD4KY29uc3QgY2FudmFzID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImdhbWUiKTsKY29uc3QgY3R4ID0gY2FudmFzLmdldENvbnRleHQoIjJkIik7CmNvbnN0IHNjb3JlRGlzcGxheSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJzY29yZSIpOwoKY29uc3QgV0lEVEggPSA5MDA7CmNvbnN0IEhFSUdIVCA9IDUwMDsKY29uc3QgZ3JvdW5kID0gNDQ1Owpjb25zdCBuZXRYID0gNDUwOwoKbGV0IHNjb3JlMSA9IDA7CmxldCBzY29yZTIgPSAwOwpsZXQgZ2FtZU92ZXIgPSBmYWxzZTsKbGV0IHNlcnZlVGltZXIgPSAwOwpsZXQgc2VydmluZ1NpZGUgPSAwOwoKCmNvbnN0IGtleXMgPSB7fTsKY29uc3QgcHJlc3NlZCA9IHt9OwoKZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcigia2V5ZG93biIsIGUgPT4gewogIGNvbnN0IGtleSA9IGUua2V5LnRvTG93ZXJDYXNlKCk7CgogIGlmIChbCiAgICAiYXJyb3d1cCIsICJhcnJvd2Rvd24iLCAiYXJyb3dsZWZ0IiwKICAgICJhcnJvd3JpZ2h0IiwgIiAiLCAiZW50ZXIiLCAic2hpZnQiCiAgXS5pbmNsdWRlcyhrZXkpKSB7CiAgICBlLnByZXZlbnREZWZhdWx0KCk7CiAgfQoKICBpZiAoIWtleXNba2V5XSkgewogICAgcHJlc3NlZFtrZXldID0gdHJ1ZTsKICB9CgogIGtleXNba2V5XSA9IHRydWU7Cn0pOwoKZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcigia2V5dXAiLCBlID0+IHsKICBjb25zdCBrZXkgPSBlLmtleS50b0xvd2VyQ2FzZSgpOwogIGtleXNba2V5XSA9IGZhbHNlOwp9KTsKCmNvbnN0IHBsYXllcnMgPSBbCiAgewogICAgeDogMTgwLAogICAgeTogZ3JvdW5kIC0gNjAsCiAgICB2eDogMCwKICAgIHZ5OiAwLAogICAgY29sb3I6ICIjMjQ4YmZmIiwKICAgIGxlZnQ6ICJhIiwKICAgIHJpZ2h0OiAiZCIsCiAgICBqdW1wOiAidyIsCiAgICBzbGlkZTogInMiLAogICAgc2V0OiAiZSIsCiAgICBzcGlrZTogInEiLAogICAgc2lkZTogMCwKICAgIHJhZGl1czogMjUsCiAgICBzbGlkZVRpbWVyOiAwLAogICAgc2V0Q29vbGRvd246IDAsCiAgICBzcGlrZUNvb2xkb3duOiAwLAogICAgZWZmZWN0OiAiIiwKICAgIGVmZmVjdFRpbWVyOiAwCiAgfSwKCiAgewogICAgeDogNzIwLAogICAgeTogZ3JvdW5kIC0gNjAsCiAgICB2eDogMCwKICAgIHZ5OiAwLAogICAgY29sb3I6ICIjZmY0YjU1IiwKICAgIGxlZnQ6ICJhcnJvd2xlZnQiLAogICAgcmlnaHQ6ICJhcnJvd3JpZ2h0IiwKICAgIGp1bXA6ICJhcnJvd3VwIiwKICAgIHNsaWRlOiAiYXJyb3dkb3duIiwKICAgIHNldDogInNoaWZ0IiwKICAgIHNwaWtlOiAiZW50ZXIiLAogICAgc2lkZTogMSwKICAgIHJhZGl1czogMjUsCiAgICBzbGlkZVRpbWVyOiAwLAogICAgc2V0Q29vbGRvd246IDAsCiAgICBzcGlrZUNvb2xkb3duOiAwLAogICAgZWZmZWN0OiAiIiwKICAgIGVmZmVjdFRpbWVyOiAwCiAgfQpdOwoKbGV0IGJhbGwgPSB7CiAgeDogMzAwLAogIHk6IDE4MCwKICB2eDogNCwKICB2eTogMSwKICByOiAxNQp9OwoKbGV0IHBhcnRpY2xlcyA9IFtdOwoKZnVuY3Rpb24gcmVzdGFydEJhbGwoc2NvcmluZ1NpZGUpIHsKICBzZXJ2aW5nU2lkZSA9IHNjb3JpbmdTaWRlOwoKICAvLyBXYWl0IDEgc2Vjb25kIGJlZm9yZSBzZXJ2aW5nCiAgc2VydmVUaW1lciA9IDYwOwoKICBiYWxsID0gewogICAgeDogc2NvcmluZ1NpZGUgPT09IDAgPyAxMzAgOiA3NzAsCiAgICB5OiBncm91bmQgLSAxNTAsCiAgICB2eDogMCwKICAgIHZ5OiAwLAogICAgcjogMTUKICB9Owp9CgoKCmZ1bmN0aW9uIHJlc3RhcnQoKSB7CiAgc2NvcmUxID0gMDsKICBzY29yZTIgPSAwOwogIGdhbWVPdmVyID0gZmFsc2U7CiAgcGFydGljbGVzID0gW107CgogIHBsYXllcnMuZm9yRWFjaCgocCwgaSkgPT4gewogICAgcC54ID0gaSA9PT0gMCA/IDE4MCA6IDcyMDsKICAgIHAueSA9IGdyb3VuZCAtIDYwOwogICAgcC52eCA9IDA7CiAgICBwLnZ5ID0gMDsKICAgIHAuc2xpZGVUaW1lciA9IDA7CiAgICBwLnNldENvb2xkb3duID0gMDsKICAgIHAuc3Bpa2VDb29sZG93biA9IDA7CiAgICBwLmVmZmVjdCA9ICIiOwogICAgcC5lZmZlY3RUaW1lciA9IDA7CiAgfSk7CgogIHJlc3RhcnRCYWxsKE1hdGgucmFuZG9tKCkgPCAwLjUgPyAwIDogMSk7CiAgdXBkYXRlU2NvcmUoKTsKfQoKZnVuY3Rpb24gdXBkYXRlU2NvcmUoKSB7CiAgc2NvcmVEaXNwbGF5LnRleHRDb250ZW50ID0gc2NvcmUxICsgIiAtICIgKyBzY29yZTI7Cn0KCmZ1bmN0aW9uIGNyZWF0ZVBhcnRpY2xlcyh4LCB5LCBjb2xvciwgY291bnQgPSAxMikgewogIGZvciAobGV0IGkgPSAwOyBpIDwgY291bnQ7IGkrKykgewogICAgcGFydGljbGVzLnB1c2goewogICAgICB4LAogICAgICB5LAogICAgICB2eDogKE1hdGgucmFuZG9tKCkgLSAwLjUpICogOCwKICAgICAgdnk6IChNYXRoLnJhbmRvbSgpIC0gMC41KSAqIDgsCiAgICAgIGxpZmU6IDMwLAogICAgICBjb2xvcgogICAgfSk7CiAgfQp9CgpmdW5jdGlvbiBhYmlsaXR5RWZmZWN0KHAsIG5hbWUpIHsKICBwLmVmZmVjdCA9IG5hbWU7CiAgcC5lZmZlY3RUaW1lciA9IDMwOwogIGNyZWF0ZVBhcnRpY2xlcyhwLngsIHAueSwgcC5jb2xvcik7Cn0KCi8vIERpc3RhbmNlIGJldHdlZW4gcGxheWVyIGFuZCBiYWxsCmZ1bmN0aW9uIGJhbGxEaXN0YW5jZShwKSB7CiAgcmV0dXJuIE1hdGguaHlwb3QoCiAgICBiYWxsLnggLSBwLngsCiAgICBiYWxsLnkgLSAocC55IC0gMTApCiAgKTsKfQoKLy8gU0xJREUKZnVuY3Rpb24gc2xpZGUocCkgewogIGlmIChwLnNsaWRlVGltZXIgPiAwKSByZXR1cm47CgogIHAuc2xpZGVUaW1lciA9IDI1OwoKICBsZXQgZGlyZWN0aW9uID0gMDsKCiAgaWYgKGtleXNbcC5sZWZ0XSkgZGlyZWN0aW9uID0gLTE7CiAgaWYgKGtleXNbcC5yaWdodF0pIGRpcmVjdGlvbiA9IDE7CgogIGlmIChkaXJlY3Rpb24gPT09IDApIHsKICAgIGRpcmVjdGlvbiA9IHAuc2lkZSA9PT0gMCA/IDEgOiAtMTsKICB9CgogIHAudnggPSBkaXJlY3Rpb24gKiAxMTsKICBwLnZ5ID0gMDsKCiAgYWJpbGl0eUVmZmVjdChwLCAiU0xJREUiKTsKfQoKLy8gU0VUCmZ1bmN0aW9uIHNldEJhbGwocCkgewogIGlmIChwLnNldENvb2xkb3duID4gMCkgcmV0dXJuOwoKICBpZiAoYmFsbERpc3RhbmNlKHApID4gMTA1KSByZXR1cm47CgogIHAuc2V0Q29vbGRvd24gPSAzNTsKCiAgbGV0IGRpcmVjdGlvbiA9IHAuc2lkZSA9PT0gMCA/IDEgOiAtMTsKCiAgYmFsbC52eCA9IGRpcmVjdGlvbiAqIDQuNSArIHAudnggKiAwLjI7CiAgYmFsbC52eSA9IC0xMDsKCiAgYmFsbC54ICs9IGRpcmVjdGlvbiAqIDg7CgogIGFiaWxpdHlFZmZlY3QocCwgIlNFVCIpOwp9CgovLyBTUElLRQpmdW5jdGlvbiBzcGlrZUJhbGwocCkgewogIGlmIChwLnNwaWtlQ29vbGRvd24gPiAwKSByZXR1cm47CgogIGlmIChiYWxsRGlzdGFuY2UocCkgPiAxMTUpIHJldHVybjsKCiAgLy8gU3Bpa2UgcmVxdWlyZXMgdGhlIHBsYXllciB0byBiZSBhaXJib3JuZQogIGlmIChwLnkgPj0gZ3JvdW5kIC0gNjIpIHJldHVybjsKCiAgcC5zcGlrZUNvb2xkb3duID0gNTA7CgogIGxldCBkaXJlY3Rpb24gPSBwLnNpZGUgPT09IDAgPyAxIDogLTE7CgogIGJhbGwudnggPSBkaXJlY3Rpb24gKiA5ICsgcC52eCAqIDAuMjsKICBiYWxsLnZ5ID0gMTE7CgogIGJhbGwueCArPSBkaXJlY3Rpb24gKiAxMjsKCiAgYWJpbGl0eUVmZmVjdChwLCAiU1BJS0UiKTsKICBjcmVhdGVQYXJ0aWNsZXMoYmFsbC54LCBiYWxsLnksICIjZmZkMTY2IiwgMTgpOwp9CgovLyBQTEFZRVIgTU9WRU1FTlQKZnVuY3Rpb24gbW92ZVBsYXllcnMoKSB7CiAgcGxheWVycy5mb3JFYWNoKHAgPT4gewoKICAgIHAuc2V0Q29vbGRvd24gPSBNYXRoLm1heCgwLCBwLnNldENvb2xkb3duIC0gMSk7CiAgICBwLnNwaWtlQ29vbGRvd24gPSBNYXRoLm1heCgwLCBwLnNwaWtlQ29vbGRvd24gLSAxKTsKICAgIHAuZWZmZWN0VGltZXIgPSBNYXRoLm1heCgwLCBwLmVmZmVjdFRpbWVyIC0gMSk7CgogICAgaWYgKHAuZWZmZWN0VGltZXIgPT09IDApIHAuZWZmZWN0ID0gIiI7CgogICAgLy8gU3BlY2lhbCBtb3ZlcwogICAgaWYgKHByZXNzZWRbcC5zbGlkZV0pIHsKICAgICAgc2xpZGUocCk7CiAgICB9CgogICAgaWYgKHByZXNzZWRbcC5zZXRdKSB7CiAgICAgIHNldEJhbGwocCk7CiAgICB9CgogICAgaWYgKHByZXNzZWRbcC5zcGlrZV0pIHsKICAgICAgc3Bpa2VCYWxsKHApOwogICAgfQoKICAgIGxldCBzcGVlZCA9IDU7CgogICAgaWYgKHAuc2xpZGVUaW1lciA+IDApIHsKICAgICAgcC5zbGlkZVRpbWVyLS07CiAgICB9IGVsc2UgewogICAgICBpZiAoa2V5c1twLmxlZnRdKSB7CiAgICAgICAgcC54IC09IHNwZWVkOwogICAgICB9CgogICAgICBpZiAoa2V5c1twLnJpZ2h0XSkgewogICAgICAgIHAueCArPSBzcGVlZDsKICAgICAgfQogICAgfQoKICAgIC8vIEp1bXAKICAgIGlmICgKICAgICAgcHJlc3NlZFtwLmp1bXBdICYmCiAgICAgIHAueSA+PSBncm91bmQgLSA2MAogICAgKSB7CiAgICAgIHAudnkgPSAtMTM7CiAgICAgIHAuc2xpZGVUaW1lciA9IDA7CiAgICB9CgogICAgLy8gR3Jhdml0eQogICAgcC52eSArPSAwLjU1OwogICAgcC55ICs9IHAudnk7CgogICAgaWYgKHAueSA+IGdyb3VuZCAtIDYwKSB7CiAgICAgIHAueSA9IGdyb3VuZCAtIDYwOwogICAgICBwLnZ5ID0gMDsKICAgIH0KCiAgICAvLyBDb3VydCBib3VuZGFyaWVzCiAgICBwLnggPSBNYXRoLm1heCgyNSwgTWF0aC5taW4oODc1LCBwLngpKTsKCiAgICAvLyBTdGF5IG9uIG93biBzaWRlCiAgICBpZiAocC5zaWRlID09PSAwKSB7CiAgICAgIHAueCA9IE1hdGgubWluKHAueCwgbmV0WCAtIDMwKTsKICAgIH0gZWxzZSB7CiAgICAgIHAueCA9IE1hdGgubWF4KHAueCwgbmV0WCArIDMwKTsKICAgIH0KCiAgICBpZiAocC5zbGlkZVRpbWVyID4gMCkgewogICAgICBwLnggKz0gcC52eDsKICAgICAgcC52eCAqPSAwLjg4OwogICAgfQogIH0pOwp9CgovLyBCQUxMIENPTExJU0lPTgpmdW5jdGlvbiBjb2xsaWRlQmFsbCgpIHsKICBwbGF5ZXJzLmZvckVhY2gocCA9PiB7CgogICAgY29uc3QgZHggPSBiYWxsLnggLSBwLng7CiAgICBjb25zdCBkeSA9IGJhbGwueSAtIChwLnkgLSAxMCk7CgogICAgY29uc3QgZGlzdCA9IE1hdGguaHlwb3QoZHgsIGR5KTsKCiAgICBjb25zdCBwbGF5ZXJSYWRpdXMgPQogICAgICBwLnNsaWRlVGltZXIgPiAwID8gMzIgOiBwLnJhZGl1czsKCiAgICBjb25zdCBtaW5EaXN0ID0gYmFsbC5yICsgcGxheWVyUmFkaXVzOwoKICAgIGlmIChkaXN0IDwgbWluRGlzdCAmJiBkaXN0ID4gMCkgewoKICAgICAgY29uc3QgbnggPSBkeCAvIGRpc3Q7CiAgICAgIGNvbnN0IG55ID0gZHkgLyBkaXN0OwoKICAgICAgYmFsbC54ID0gcC54ICsgbnggKiBtaW5EaXN0OwogICAgICBiYWxsLnkgPSBwLnkgLSAxMCArIG55ICogbWluRGlzdDsKCiAgICAgIGNvbnN0IHNwZWVkID0gTWF0aC5oeXBvdChiYWxsLnZ4LCBiYWxsLnZ5KTsKCiAgICAgIGJhbGwudnggPQogICAgICAgIG54ICogTWF0aC5tYXgoc3BlZWQsIDUpICsgcC52eCAqIDAuMzsKCiAgICAgIGJhbGwudnkgPQogICAgICAgIG55ICogTWF0aC5tYXgoc3BlZWQsIDUpIC0gMTsKCiAgICAgIGNyZWF0ZVBhcnRpY2xlcyhiYWxsLngsIGJhbGwueSwgcC5jb2xvciwgNSk7CiAgICB9CiAgfSk7Cn0KCi8vIEJBTEwgUEhZU0lDUwogIApmdW5jdGlvbiB1cGRhdGVCYWxsKCkgewoKICAvLyBXYWl0IGJlZm9yZSBzZXJ2aW5nCiAgaWYgKHNlcnZlVGltZXIgPiAwKSB7CiAgICBzZXJ2ZVRpbWVyLS07CgogICAgaWYgKHNlcnZlVGltZXIgPT09IDApIHsKICAgICAgbGV0IGRpcmVjdGlvbiA9IHNlcnZpbmdTaWRlID09PSAwID8gMSA6IC0xOwoKICAgICAgLy8gTGF1bmNoIGJhbGwgdG93YXJkIG9wcG9uZW50CiAgICAgIGJhbGwudnggPSBkaXJlY3Rpb24gKiA5OwogICAgICBiYWxsLnZ5ID0gLTExOwogICAgfQoKICAgIHJldHVybjsKICB9CgogIGJhbGwudnkgKz0gMC4yNTsKCgogIGJhbGwueCArPSBiYWxsLnZ4OwogIGJhbGwueSArPSBiYWxsLnZ5OwoKICAvLyBTaWRlIHdhbGxzCiAgaWYgKGJhbGwueCA8IGJhbGwucikgewogICAgYmFsbC54ID0gYmFsbC5yOwogICAgYmFsbC52eCAqPSAtMC44NTsKICB9CgogIGlmIChiYWxsLnggPiBXSURUSCAtIGJhbGwucikgewogICAgYmFsbC54ID0gV0lEVEggLSBiYWxsLnI7CiAgICBiYWxsLnZ4ICo9IC0wLjg1OwogIH0KCiAgLy8gQ2VpbGluZwogIGlmIChiYWxsLnkgPCBiYWxsLnIpIHsKICAgIGJhbGwueSA9IGJhbGwucjsKICAgIGJhbGwudnkgKj0gLTAuODU7CiAgfQoKICAvLyBOZXQgY29sbGlzaW9uCiAgaWYgKAogICAgYmFsbC54ICsgYmFsbC5yID4gbmV0WCAtIDUgJiYKICAgIGJhbGwueCAtIGJhbGwuciA8IG5ldFggKyA1ICYmCiAgICBiYWxsLnkgKyBiYWxsLnIgPiAzMTUKICApIHsKICAgIGlmIChiYWxsLnggPCBuZXRYKSB7CiAgICAgIGJhbGwueCA9IG5ldFggLSA1IC0gYmFsbC5yOwogICAgfSBlbHNlIHsKICAgICAgYmFsbC54ID0gbmV0WCArIDUgKyBiYWxsLnI7CiAgICB9CgogICAgYmFsbC52eCAqPSAtMC44OwogIH0KCiAgLy8gTmV0IHRvcAogIGlmICgKICAgIE1hdGguYWJzKGJhbGwueCAtIG5ldFgpIDwgNDUgJiYKICAgIGJhbGwueSArIGJhbGwuciA+IDMxNSAmJgogICAgYmFsbC55IDwgMzIwCiAgKSB7CiAgICBiYWxsLnkgPSAzMTUgLSBiYWxsLnI7CiAgICBiYWxsLnZ5ICo9IC0wLjg7CiAgfQoKICBjb2xsaWRlQmFsbCgpOwoKICAvLyBHcm91bmQgPSBwb2ludAogLy8gR3JvdW5kID0gcG9pbnQKaWYgKGJhbGwueSArIGJhbGwuciA+PSBncm91bmQpIHsKCiAgaWYgKGJhbGwueCA8IG5ldFgpIHsKICAgIHNjb3JlMisrOwogICAgcmVzdGFydEJhbGwoMSk7CiAgfSBlbHNlIHsKICAgIHNjb3JlMSsrOwogICAgcmVzdGFydEJhbGwoMCk7CiAgfQoKICB1cGRhdGVTY29yZSgpOwoKICAvLyBXaW4gYnkgMiBwb2ludHMKICBpZiAoCiAgICAoc2NvcmUxID49IDEwIHx8IHNjb3JlMiA+PSAxMCkgJiYKICAgIE1hdGguYWJzKHNjb3JlMSAtIHNjb3JlMikgPj0gMgogICkgewogICAgZ2FtZU92ZXIgPSB0cnVlOwogIH0KfQoKCiAgYmFsbC52eCAqPSAwLjk5OTsKfQoKLy8gUEFSVElDTEVTCmZ1bmN0aW9uIHVwZGF0ZVBhcnRpY2xlcygpIHsKICBwYXJ0aWNsZXMuZm9yRWFjaChwID0+IHsKICAgIHAueCArPSBwLnZ4OwogICAgcC55ICs9IHAudnk7CiAgICBwLmxpZmUtLTsKICB9KTsKCiAgcGFydGljbGVzID0gcGFydGljbGVzLmZpbHRlcihwID0+IHAubGlmZSA+IDApOwp9CgpmdW5jdGlvbiBkcmF3UGFydGljbGVzKCkgewogIHBhcnRpY2xlcy5mb3JFYWNoKHAgPT4gewogICAgY3R4Lmdsb2JhbEFscGhhID0gcC5saWZlIC8gMzA7CiAgICBjdHguZmlsbFN0eWxlID0gcC5jb2xvcjsKCiAgICBjdHguYmVnaW5QYXRoKCk7CiAgICBjdHguYXJjKHAueCwgcC55LCA0LCAwLCBNYXRoLlBJICogMik7CiAgICBjdHguZmlsbCgpOwogIH0pOwoKICBjdHguZ2xvYmFsQWxwaGEgPSAxOwp9CgovLyBDT1VSVApmdW5jdGlvbiBkcmF3Q291cnQoKSB7CiAgY3R4LmZpbGxTdHlsZSA9ICIjZWRjMTdjIjsKICBjdHguZmlsbFJlY3QoMCwgZ3JvdW5kLCBXSURUSCwgNTUpOwoKICAvLyBDb3VydCBsaW5lCiAgY3R4LnN0cm9rZVN0eWxlID0gIndoaXRlIjsKICBjdHgubGluZVdpZHRoID0gNDsKCiAgY3R4LmJlZ2luUGF0aCgpOwogIGN0eC5tb3ZlVG8oMCwgZ3JvdW5kKTsKICBjdHgubGluZVRvKFdJRFRILCBncm91bmQpOwogIGN0eC5zdHJva2UoKTsKCiAgLy8gTmV0CiAgY3R4LmZpbGxTdHlsZSA9ICIjZWVlZWVlIjsKICBjdHguZmlsbFJlY3QobmV0WCAtIDUsIDMxNSwgMTAsIDEzMCk7CgogIGN0eC5zdHJva2VTdHlsZSA9ICIjZmZmZmZmIjsKICBjdHgubGluZVdpZHRoID0gMjsKCiAgZm9yIChsZXQgeSA9IDMyMDsgeSA8IDQ0NTsgeSArPSAxMikgewogICAgY3R4LmJlZ2luUGF0aCgpOwogICAgY3R4Lm1vdmVUbyhuZXRYIC0gMTcsIHkpOwogICAgY3R4LmxpbmVUbyhuZXRYICsgMTcsIHkpOwogICAgY3R4LnN0cm9rZSgpOwogIH0KCiAgLy8gUG9sZXMKICBjdHguZmlsbFN0eWxlID0gIiMzMzMiOwogIGN0eC5maWxsUmVjdChuZXRYIC0gNywgMzA1LCAxNCwgMTQwKTsKfQoKLy8gUExBWUVSIERSQVdJTkcKZnVuY3Rpb24gZHJhd1BsYXllcihwKSB7CgogIC8vIFNsaWRlIGFuaW1hdGlvbgogIGlmIChwLnNsaWRlVGltZXIgPiAwKSB7CgogICAgY3R4LmZpbGxTdHlsZSA9IHAuY29sb3I7CgogICAgY3R4LmJlZ2luUGF0aCgpOwogICAgY3R4LmVsbGlwc2UoCiAgICAgIHAueCwKICAgICAgcC55ICsgMTIsCiAgICAgIDM1LAogICAgICAxNSwKICAgICAgMCwKICAgICAgMCwKICAgICAgTWF0aC5QSSAqIDIKICAgICk7CgogICAgY3R4LmZpbGwoKTsKCiAgfSBlbHNlIHsKCiAgICAvLyBCb2R5CiAgICBjdHguZmlsbFN0eWxlID0gcC5jb2xvcjsKCiAgICBjdHguYmVnaW5QYXRoKCk7CiAgICBjdHguYXJjKAogICAgICBwLngsCiAgICAgIHAueSAtIDEwLAogICAgICBwLnJhZGl1cywKICAgICAgMCwKICAgICAgTWF0aC5QSSAqIDIKICAgICk7CgogICAgY3R4LmZpbGwoKTsKCiAgICAvLyBGYWNlCiAgICBjdHguZmlsbFN0eWxlID0gIndoaXRlIjsKCiAgICBjdHguYmVnaW5QYXRoKCk7CiAgICBjdHguYXJjKAogICAgICBwLnggKyA4LAogICAgICBwLnkgLSAxNiwKICAgICAgNCwKICAgICAgMCwKICAgICAgTWF0aC5QSSAqIDIKICAgICk7CgogICAgY3R4LmZpbGwoKTsKCiAgICAvLyBMZWdzCiAgICBjdHguc3Ryb2tlU3R5bGUgPSBwLmNvbG9yOwogICAgY3R4LmxpbmVXaWR0aCA9IDg7CiAgICBjdHgubGluZUNhcCA9ICJyb3VuZCI7CgogICAgY3R4LmJlZ2luUGF0aCgpOwoKICAgIGN0eC5tb3ZlVG8ocC54IC0gOCwgcC55ICsgMTIpOwogICAgY3R4LmxpbmVUbyhwLnggLSAxMiwgcC55ICsgMjgpOwoKICAgIGN0eC5tb3ZlVG8ocC54ICsgOCwgcC55ICsgMTIpOwogICAgY3R4LmxpbmVUbyhwLnggKyAxMiwgcC55ICsgMjgpOwoKICAgIGN0eC5zdHJva2UoKTsKICB9CgogIC8vIEFiaWxpdHkgdGV4dAogIGlmIChwLmVmZmVjdFRpbWVyID4gMCkgewoKICAgIGN0eC5maWxsU3R5bGUgPSAiI2ZmZDE2NiI7CiAgICBjdHguZm9udCA9ICJib2xkIDE4cHggQXJpYWwiOwogICAgY3R4LnRleHRBbGlnbiA9ICJjZW50ZXIiOwoKICAgIGN0eC5maWxsVGV4dCgKICAgICAgcC5lZmZlY3QsCiAgICAgIHAueCwKICAgICAgcC55IC0gNTUKICAgICk7CiAgfQp9CgovLyBCQUxMIERSQVdJTkcKZnVuY3Rpb24gZHJhd0JhbGwoKSB7CgogIGN0eC5maWxsU3R5bGUgPSAiI2ZmZmZmZiI7CgogIGN0eC5iZWdpblBhdGgoKTsKICBjdHguYXJjKGJhbGwueCwgYmFsbC55LCBiYWxsLnIsIDAsIE1hdGguUEkgKiAyKTsKICBjdHguZmlsbCgpOwoKICBjdHguc3Ryb2tlU3R5bGUgPSAiIzIyMiI7CiAgY3R4LmxpbmVXaWR0aCA9IDI7CgogIGN0eC5iZWdpblBhdGgoKTsKICBjdHguYXJjKAogICAgYmFsbC54LAogICAgYmFsbC55LAogICAgYmFsbC5yIC0gNSwKICAgIDAsCiAgICBNYXRoLlBJICogMgogICk7CiAgY3R4LnN0cm9rZSgpOwoKICBjdHguYmVnaW5QYXRoKCk7CgogIGN0eC5tb3ZlVG8oYmFsbC54IC0gYmFsbC5yLCBiYWxsLnkpOwogIGN0eC5saW5lVG8oYmFsbC54ICsgYmFsbC5yLCBiYWxsLnkpOwoKICBjdHgubW92ZVRvKGJhbGwueCwgYmFsbC55IC0gYmFsbC5yKTsKICBjdHgubGluZVRvKGJhbGwueCwgYmFsbC55ICsgYmFsbC5yKTsKCiAgY3R4LnN0cm9rZSgpOwp9CgovLyBHQU1FIE9WRVIgU0NSRUVOCmZ1bmN0aW9uIGRyYXdHYW1lT3ZlcigpIHsKCiAgY3R4LmZpbGxTdHlsZSA9ICJyZ2JhKDAsMCwwLC43NSkiOwogIGN0eC5maWxsUmVjdCgwLCAwLCBXSURUSCwgSEVJR0hUKTsKCiAgY3R4LmZpbGxTdHlsZSA9ICIjZmZkMTY2IjsKICBjdHguZm9udCA9ICJib2xkIDQ4cHggQXJpYWwiOwogIGN0eC50ZXh0QWxpZ24gPSAiY2VudGVyIjsKCiAgY3R4LmZpbGxUZXh0KAogICAgc2NvcmUxID4gc2NvcmUyID8gIkJMVUUgV0lOUyEiIDogIlJFRCBXSU5TISIsCiAgICBXSURUSCAvIDIsCiAgICAyMjAKICApOwoKICBjdHguZmlsbFN0eWxlID0gIndoaXRlIjsKICBjdHguZm9udCA9ICIyNXB4IEFyaWFsIjsKCiAgY3R4LmZpbGxUZXh0KAogICAgIkNsaWNrIFJFU1RBUlQgR0FNRSB0byBwbGF5IGFnYWluIiwKICAgIFdJRFRIIC8gMiwKICAgIDI3NQogICk7Cn0KCgovLyBNQUlOIERSQVcKZnVuY3Rpb24gZHJhdygpIHsKICBjdHguY2xlYXJSZWN0KDAsIDAsIFdJRFRILCBIRUlHSFQpOwoKICBkcmF3Q291cnQoKTsKCiAgcGxheWVycy5mb3JFYWNoKGRyYXdQbGF5ZXIpOwoKICBkcmF3QmFsbCgpOwogIGRyYXdQYXJ0aWNsZXMoKTsKCiAgaWYgKGdhbWVPdmVyKSB7CiAgICBkcmF3R2FtZU92ZXIoKTsKICB9Cn0KCi8vIEdBTUUgTE9PUApmdW5jdGlvbiBsb29wKCkgewoKICBpZiAoIWdhbWVPdmVyKSB7CiAgICBtb3ZlUGxheWVycygpOwogICAgdXBkYXRlQmFsbCgpOwogICAgdXBkYXRlUGFydGljbGVzKCk7CiAgfQoKICBkcmF3KCk7CgogIC8vIENsZWFyIG9uZS1mcmFtZSBrZXkgcHJlc3NlcwogIGZvciAoY29uc3Qga2V5IGluIHByZXNzZWQpIHsKICAgIGRlbGV0ZSBwcmVzc2VkW2tleV07CiAgfQoKICByZXF1ZXN0QW5pbWF0aW9uRnJhbWUobG9vcCk7Cn0KCi8vIFNUQVJUIEdBTUUKcmVzdGFydEJhbGwoTWF0aC5yYW5kb20oKSA8IDAuNSA/IDAgOiAxKTsKbG9vcCgpOwoKPC9zY3JpcHQ+Cgo8L2JvZHk+CjwvaHRtbD4KCgoK";
+let legacyOpen = false;
+function openLegacy() {
+  const frame = document.getElementById("legacyFrame");
+  const bytes = Uint8Array.from(atob(ARCHIVE_NOTES), c => c.charCodeAt(0));
+  frame.srcdoc = new TextDecoder().decode(bytes);
+  document.getElementById("legacyView").style.display = "block";
+  legacyOpen = true;
+  for (const k in keys) keys[k] = false;
+  frame.focus();
+}
+function closeLegacy() {
+  const frame = document.getElementById("legacyFrame");
+  frame.srcdoc = "";
+  document.getElementById("legacyView").style.display = "none";
+  legacyOpen = false;
+}
+
 document.addEventListener("keydown", e => {
   if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+  if (legacyOpen) return;
   const key = normalizeKey(e);
+  if (key === "m" && gameStarted) { toggleSound(); return; }
+  if (statsOpen) { if (key === "enter") { e.preventDefault(); restart(); } return; }
   if (briefingOpen) { if (key === "enter") { e.preventDefault(); closeBriefing(); } return; }
+  if (key === "escape") { e.preventDefault(); togglePause(); return; }
   if (["arrowup","arrowdown","arrowleft","arrowright"," ","enter","shift"].includes(key) || key.startsWith("numpad")) e.preventDefault();
   if (!keys[key]) {
     pressed[key] = true;
@@ -142,7 +195,7 @@ window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; }
 
 // Flashcards: quiz yourself, then check the answer.
 function newInput() {
-  return { left: false, right: false, jump: false, slide: false, set: false, spike: false, spikeHeld: false };
+  return { left: false, right: false, jump: false, slide: false, set: false, spike: false, spikeHeld: false, setHeld: false };
 }
 // Summary of this topic for exam revision.
 function readKeys(p, m) {
@@ -152,6 +205,7 @@ function readKeys(p, m) {
   n.left = held(m.left); n.right = held(m.right);
   n.jump = edge(m.jump); n.slide = edge(m.slide); n.set = edge(m.set); n.spike = edge(m.spike);
   n.spikeHeld = held(m.spike);
+  n.setHeld = held(m.set);
 }
 
 // Practice questions - attempt before reading the solution.
@@ -164,7 +218,8 @@ function createPlayer(x, side, color, map) {
   return {
     x, y: ground - 60, vx: 0, vy: 0, color, map, in: newInput(), isBot: false,
     side, radius: 25, slideTimer: 0, setCooldown: 0, spikeCooldown: 0,
-    effect: "", effectTimer: 0, charge: 0, charging: false
+    effect: "", effectTimer: 0, charge: 0, charging: false,
+    immune: 0, dribCD: 0, stealCD: 0, noPick: 0, dribT: 0, catchCD: 0, stun: 0, shoveCD: 0
   };
 }
 
@@ -181,16 +236,17 @@ function createPlayers() {
   playerTouchingBall = players.map(() => false);
 }
 
-let ball = { x: 300, y: 180, vx: 4, vy: 1, r: 15, bnc: 0, slice: false };
+let ball = { x: 300, y: 180, vx: 4, vy: 1, r: 15, bnc: 0 };
 let particles = [];
 
 let pendingMode = 1, sport = "volleyball";
 const THEMES = {
   volleyball: { bg: "linear-gradient(#9fd0d4 72%, #e2b977 72%)", floor: "#e2b977" },
   badminton:  { bg: "linear-gradient(#7d9a86 72%, #b57a43 72%)", floor: "#b57a43" },
-  tennis:     { bg: "linear-gradient(#b9d3c8 72%, #c4623a 72%)", floor: "#c4623a" }
+  basketball: { bg: "linear-gradient(#cfc8ba 62%, #b9824a 62%)", floor: "#a56d37" },
+
 };
-const TITLES = { volleyball: "Study Guide", badminton: "Study Guide", tennis: "Study Guide" };
+const TITLES = { volleyball: "Study Guide", badminton: "Study Guide", basketball: "Study Guide" };
 
 const mbg = document.getElementById("menuBg");
 const mctx = mbg.getContext("2d");
@@ -201,7 +257,7 @@ addEventListener("resize", sizeMenuBg);
 
 const mItems = [];
 for (let i = 0; i < 22; i++) {
-  mItems.push({ kind: ["volley","tennis","birdie","racquet"][i % 4], x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+  mItems.push({ kind: ["volley","birdie","racquet","hoop"][i % 4], x: Math.random() * innerWidth, y: Math.random() * innerHeight,
     vx: (Math.random() - 0.5) * 1.4, vy: (Math.random() - 0.5) * 1.4, r: 18 + Math.random() * 24, a: Math.random() * 6.28, va: (Math.random() - 0.5) * 0.03 });
 }
 
@@ -214,10 +270,10 @@ function drawMenuItem(it) {
     mctx.fillStyle = "#f4ecd8";
     mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
     mctx.beginPath(); mctx.arc(0, 0, 10, 0, Math.PI * 2); mctx.moveTo(-15, 0); mctx.lineTo(15, 0); mctx.moveTo(0, -15); mctx.lineTo(0, 15); mctx.stroke();
-  } else if (it.kind === "tennis") {
-    mctx.fillStyle = "#c8f03c";
+  } else if (it.kind === "hoop") {
+    mctx.fillStyle = "#e07b2a";
     mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
-    mctx.strokeStyle = "#ffffff";
+    mctx.beginPath(); mctx.moveTo(-15, 0); mctx.lineTo(15, 0); mctx.moveTo(0, -15); mctx.lineTo(0, 15); mctx.stroke();
     mctx.beginPath(); mctx.arc(-17, 0, 14, -0.9, 0.9); mctx.stroke();
     mctx.beginPath(); mctx.arc(17, 0, 14, Math.PI - 0.9, Math.PI + 0.9); mctx.stroke();
   } else if (it.kind === "birdie") {
@@ -268,10 +324,7 @@ function showStep(id) {
 // Practice questions - attempt before reading the solution.
 function chooseMode(m) {
   pendingMode = m; pendingBot = null;
-  document.getElementById("oppPrompt").textContent = m === 1 ? "Who are you playing against?" : "How are you playing 2v2?";
-  document.getElementById("sameKbBtn").textContent = m === 1 ? "Same Keyboard" : "Same Keyboard (4P)";
-  document.getElementById("soloBotBtn").style.display = m === 1 ? "block" : "none";
-  showStep("oppStep");
+  showStep(m === 1 ? "oppStep" : "sportStep");
 }
 // Highlight the main idea of each section in your notes.
 function chooseOpponent(type) {
@@ -285,7 +338,8 @@ function chooseDifficulty(level) { pendingBot = level; showStep("sportStep"); }
 function showModeStep() { pendingBot = null; showStep("modeStep"); }
 // Study schedule: break the reading into short sessions.
 function backFromSport() {
-  if (pendingBot) showStep("diffStep");
+  if (pendingMode === 2) showStep("modeStep");
+  else if (pendingBot) showStep("diffStep");
   else showStep("oppStep");
 }
 // Mnemonic to help remember this section.
@@ -303,6 +357,7 @@ function setupGameScreen(mode, s) {
   document.getElementById("menu").style.display = "none";
   document.getElementById("gameArea").style.display = "block";
   score1 = 0; score2 = 0; gameOver = false; particles = []; lastHitSide = -1;
+  resetStats(); hideStats();
   createPlayers();
   updateScore();
   updateControls();
@@ -315,6 +370,7 @@ function startGame(mode, s) {
     ? { level: pendingBot, timer: 0, noise: 0, pred: { x: 720, t: 99 }, wait: BOT_LEVELS[pendingBot].serveDelay, chargeTarget: null, chargeTime: 0 }
     : null;
   if (bot) players[1].isBot = true;
+  setPaused(false);
   gameStarted = true;
   restartBall(Math.random() < 0.5 ? 0 : 1);
   updateControls();
@@ -339,38 +395,49 @@ ${bot ? '<b style="color:#ff4b55">BOT (RED) · ' + bot.level.toUpperCase() + '</
 }
 
 function updateControls() {
-  document.getElementById("controlsDisplay").innerHTML = controlsHTML() + `<br><br>First ${gameMode === 1 ? "player" : "team"} to 10 points wins (win by 2).`;
+  document.getElementById("controlsDisplay").innerHTML = controlsHTML() + `<br><br>First ${gameMode === 1 ? "player" : "team"} to ${winScore()} points wins (win by 2).`;
 }
 
 const BRIEF = {
   volleyball: { name: "Volleyball", tips: [
     "Keep the ball off your side of the net. First to 10 points wins, and you must win by 2.",
-    "<b>Serve:</b> the server jumps into the ball to launch it. The other side must bump it with their body first (no set or spike on the receive).",
-    "<b>SET</b> sends a high lob. <b>SPIKE</b> needs a jump and slams the ball down, best from near the net with the ball above the net line.",
+    "<b>Serve:</b> the server jumps into the ball for a standard serve. For a fast, flat <b>JUMP SERVE</b>, press SPIKE together with JUMP (or just after) so you hit it in the air.",
+    "<b>Receive:</b> the other side can bump the serve with their body or use SET. There are no spikes on the first touch.",
+    "<b>SET</b> sends a high lob the way you are moving: hold toward the net for a <b>NET SET</b> that comes down tight beside the net, hold away to set back to a teammate, or no direction for a normal forward set.",
+    "<b>SPIKE</b> needs a jump. With no direction it is a standard spike. Hold toward the net for a <b>CUT</b> (short and steep) or away from the net for a <b>DEEP</b> spike (fast and flat to the back).",
     "A dashed ring appears on the ball when you can hit it: <b>gold = set</b>, <b>red = spike</b>. Your arms go up for a set and swing for a spike.",
     "The net is tall and jumps are high, so time your jump." ] },
+    basketball: { name: "Basketball", tips: [
+    "Two hoops, one on each side. First to 15 points wins (win by 2). Shots from beyond the dotted lines are worth 3, everything else 2.",
+    "<b>SHOOT:</b> you can only shoot while you have the ball. Hold the button to fill the power bar and release to shoot. The <b>green mark</b> on the bar is the power range that drops the shot cleanly in from where you stand, and it moves as you move or jump, so release inside it.",
+    "<b>DRIBBLE / STEAL:</b> with the ball, this button dribbles. For about 1 second you cannot be stolen from, then it needs 2 seconds to recharge. Without the ball it is a steal: get close to the ball carrier and press it. Stealing from a player who is dribbling fails and leaves you open for a moment.",
+    "<b>Shots in the air:</b> a shot is protected for a moment after release (a white ring fills up around it). After that the ring turns red and a defender can block it by touching it, or press the shoot button without the ball while the ball is close to grab it out of the air. After a miss the ball is loose and the first player to touch it takes it.",
+    "Gold <b>SHOOT</b> and red <b>STEAL</b> rings appear on the ball when those moves are available. A white <b>SAFE</b> ring means the carrier is dribbling and cannot be stolen from.",
+    "<b>SLIDE</b> is a quick dash. If an opponent is close and not dribbling, it also shoves them back and stuns them for a moment, which is how you make space for a step-back shot (slide away from them, then shoot). The shove needs about 1.5 seconds to recharge, and a player with a ring around them is protected.",
+    "After every basket the other side gets the ball back at their starting spots." ] },
   badminton: { name: "Badminton", tips: [
     "Keep the birdie off your side. First to 10 points wins (win by 2).",
     "<b>Tap the smash button</b> for a high, deep <b>CLEAR</b>. <b>Hold</b> it and the bar fills fast, bending the angle from clear, to flat, to a steep downward smash.",
     "Hold about half for a flat <b>back-row</b> attack from deep. Hold fully near the net for a steep <b>SMASH</b>. The white mark on the bar is 50%.",
-    "<b>LIFT</b> is a quick, lofted return. You can hit from a long way off, so you don't have to be perfectly under the birdie.",
+    "<b>LIFT</b> is a quick, lofted return that goes the way you are moving (no direction = forward). You can hit from a long way off, so you don't have to be perfectly under the birdie.",
     "The birdie is fast off the racquet and slows quickly in the air. A dashed ring shows when it is in reach.",
+    "<b>Smash streak:</b> each smash your side lands in a row adds power (up to +48%) and the hit effect changes colour: yellow, orange, red, blue, then violet. Your side's next touch being a clear, a lift or anything that is not a smash resets it, and so does a new point.","<b>DROP shot:</b> hold toward the net while you press LIFT for a soft shot that just clears the net and lands close behind it.",
     "<b>Serve:</b> the server jumps into the birdie. The receiver can hit it right away." ] },
-  tennis: { name: "Tennis", tips: [
-    "First to 10 points wins (win by 2). The court is flat and fast, and the net is low.",
-    "<b>Bounce rule:</b> after a hit, the ball must bounce once on the far side. The receiver hits it before or after that bounce. A second bounce loses the point.",
-    "You also lose the point if your ball lands on your own side, hits the net and drops back, or bounces outside the white baselines.",
-    "<b>SLICE</b> is a low floating shot that stays low after the bounce. <b>DRIVE</b> is a hard flat shot. Drive while airborne above the net for a <b>SMASH</b>.",
-    "Reach is short and shots have a little natural variation, so get in position early.",
-    "<b>Serve:</b> jump into the ball. A white ring shows once it has bounced, meaning you must hit it now." ] }
+
 };
 
 let briefingOpen = false;
+
+function setPaused(v) {
+  paused = v;
+  for (const k in keys) keys[k] = false;
+}
+function togglePause() { if (gameStarted && !briefingOpen && !gameOver) setPaused(!paused); }
 function openBriefing() {
   const B = BRIEF[sport];
   const mode = bot ? "vs Bot (" + bot.level + ")" : (gameMode === 2 ? "2 vs 2" : "1 vs 1");
   document.getElementById("briefTitle").textContent = B.name + " · " + mode;
-  document.getElementById("briefBody").innerHTML = "<b>CONTROLS</b><br>" + controlsHTML() + "<br><br><b>HOW IT WORKS</b><ul><li>" + B.tips.join("</li><li>") + "</li></ul>";
+  document.getElementById("briefBody").innerHTML = "<b>CONTROLS</b><br>" + controlsHTML() + "<br><br><b>HOW IT WORKS</b><ul><li>" + B.tips.concat(sport === "basketball" && gameMode === 2 ? ["<b>Team play:</b> only the player holding the ball can shoot. There are no passes, so use your teammate to rebound and to pressure the other side."] : [], sport === "volleyball" && gameMode === 2 ? ["<b>Three touches:</b> your side may touch the ball at most three times in a row. A fourth touch loses the point. The dots at the top of your half count your touches."] : [], ["Press <b>Escape</b> to pause and <b>M</b> to mute or unmute sound."]).join("</li><li>") + "</li></ul>";
   document.getElementById("briefing").style.display = "flex";
   briefingOpen = true;
   for (const k in keys) keys[k] = false;
@@ -383,9 +450,9 @@ let bot = null;
 let pendingBot = null;
 
 const BOT_LEVELS = {
-  easy:   { react: 40, err: 110, move: 0.5,  setRange: 80,  setProb: 0.3, spike: 0,   slide: 0,   drive: 0.1,  power: [0.5, 0.7], ready: 770, serveDelay: 110 },
-  medium: { react: 14, err: 40,  move: 0.85, setRange: 98,  setProb: 0.7, spike: 0.3, slide: 0.3, drive: 0.35, power: [0.5, 0.8], ready: 720, serveDelay: 70 },
-  hard:   { react: 2,  err: 5,   move: 1,    setRange: 105, setProb: 1,   spike: 0.9, slide: 1,   drive: 0.6,  power: [0.7, 1],   ready: 670, serveDelay: 40 }
+  easy:   { react: 40, err: 110, move: 0.5,  setRange: 80,  setProb: 0.3, spike: 0,   slide: 0,   drive: 0.1,  power: [0.5, 0.7], ready: 770, serveDelay: 110, drop: 0, shove: 0, grab: 0.05, aim: 0.3, range: [230, 340], bdrib: 0.3, bsteal: 0.3, block: 0.1 },
+  medium: { react: 14, err: 40,  move: 0.85, setRange: 98,  setProb: 0.7, spike: 0.3, slide: 0.3, drive: 0.35, power: [0.5, 0.8], ready: 720, serveDelay: 70, drop: 0.15, shove: 0.3, grab: 0.2, aim: 0.15, range: [230, 340], bdrib: 0.6, bsteal: 0.6, block: 0.3 },
+  hard:   { react: 2,  err: 5,   move: 1,    setRange: 105, setProb: 1,   spike: 0.9, slide: 1,   drive: 0.6,  power: [0.7, 1],   ready: 670, serveDelay: 40, drop: 0.3, shove: 0.6, grab: 0.5, aim: 0.06, range: [240, 380], bdrib: 1, bsteal: 1, block: 0.6 }
 };
 
 // Flashcards: quiz yourself, then check the answer.
@@ -414,7 +481,8 @@ function predictLanding() {
 function botControl() {
   if (!bot) return;
   const p = players[1], n = p.in, L = BOT_LEVELS[bot.level];
-  n.left = n.right = n.jump = n.slide = n.set = n.spike = false;
+  n.left = n.right = n.jump = n.slide = n.set = n.spike = n.dropWanted = false; n.style = null; n.setHeld = false;
+  if (sport === "basketball") { botBasket(p, n, L); return; }
 
   const grounded = p.y >= ground - 60;
   const serving = serveInProgress && !serveHit && servingSide === p.side;
@@ -427,6 +495,7 @@ function botControl() {
     target = ball.x;
     if (bot.wait > 0) bot.wait--;
     else if (Math.abs(p.x - ball.x) < 10 && grounded) n.jump = true;
+    if (sport === "volleyball" && !grounded && bot.wait <= 0 && Math.random() < L.spike * 0.4) n.spike = true;
   } else {
     bot.wait = L.serveDelay;
     if (!waitingOnServe && !afterOwnServe) {
@@ -438,7 +507,7 @@ function botControl() {
         target = Math.max(netX + 40, near ? ball.x + 12 + bot.noise * 0.3 : pr.x + 18 + bot.noise);
       }
 
-      const receivingOk = serveHit && sport !== "volleyball" && servingSide !== p.side;
+      const receivingOk = serveHit && servingSide !== p.side;
       const live = ball.x >= netX && p.slideTimer === 0 && (!serveInProgress || receivingOk);
       const d = Math.hypot(ball.x - p.x, ball.y - (p.y - 10));
       const air = p.y < ground - 62;
@@ -450,9 +519,7 @@ function botControl() {
         if (live && zone && p.charge >= bot.chargeTarget) bot.chargeTarget = null;
         else if (bot.chargeTime > 70 || (grounded && bot.chargeTime > 12)) bot.chargeTarget = null;
       } else if (live) {
-        if (sport === "tennis") {
-          if (canSet) { if (Math.random() < L.drive) n.spike = true; else n.set = true; }
-        } else if (sport === "badminton") {
+        if (sport === "badminton") {
           if (grounded && L.spike > 0 && ball.x > 470 && ball.x < 640 && ball.y > 120 && ball.y < netTop + 20 && ball.vy > -1 &&
               Math.abs(p.x - ball.x) < 50 && Math.random() < L.spike * 0.15) {
             n.jump = true; n.spike = true;
@@ -461,8 +528,14 @@ function botControl() {
             if (Math.random() < 0.5) n.set = true; else n.spike = true;
           }
         } else {
-          const zone = air && d < SPORTS[sport].hitReach - 3 && ball.x < 570 && ball.y < netTop + 25;
-          if (zone) { if (Math.random() < L.spike) n.spike = true; }
+          const zone = air && d < SPORTS[sport].hitReach - 3 && ball.x < 570 && ball.y < netTop + 25 && !serveInProgress;
+          if (zone) {
+            if (Math.random() < L.spike) {
+              n.spike = true;
+              const r = Math.random();
+              n.style = L.spike > 0.5 ? (r < 0.34 ? "cut" : (r < 0.67 ? "deep" : null)) : (r < 0.4 ? "cut" : null);
+            }
+          }
           else if (canSet) n.set = true;
           if (grounded && L.spike > 0 && ball.x > 480 && ball.x < 570 && ball.y > 110 && ball.y < 260 && ball.vy > -1 &&
               Math.abs(p.x - ball.x) < 45 && Math.random() < L.spike * 0.12) n.jump = true;
@@ -475,11 +548,15 @@ function botControl() {
   const dx = target - p.x;
   if (Math.abs(dx) > 6 && Math.random() < L.move) { if (dx < 0) n.left = true; else n.right = true; }
   if (mySide && pr && pr.t < 28 && Math.abs(dx) > 100 && grounded && p.slideTimer === 0 && Math.random() < L.slide * 0.25) n.slide = true;
+  if (n.set) n.dropWanted = Math.random() < L.drop;
+  if (n.set) { n.left = true; n.right = false; }
 }
 
 // Practice questions - attempt before reading the solution.
 function backToMenu() {
   gameStarted = false;
+  hideStats();
+  setPaused(false);
   hideBriefing();
   document.getElementById("menu").style.display = "flex";
   showModeStep();
@@ -490,14 +567,17 @@ function backToMenu() {
 
 // Highlight the main idea of each section in your notes.
 function restartBall(scoringSide) {
-  servingSide = scoringSide; serveHit = false; serveInProgress = true; servePlayerIndex = -1; lastHitSide = -1; hitShield = 0;
+  if (sport === "basketball") { bbSetup(1 - scoringSide); return; }
+  servingSide = scoringSide; serveHit = false; serveInProgress = true; servePlayerIndex = -1; lastHitSide = -1; hitShield = 0; smashStreak = [0, 0]; touches = [0, 0]; notice = null;
   playerTouchingBall = players.map(() => false);
-  ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: sport === "badminton" ? 19 : 15, bnc: 0, slice: false };
+  ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: sport === "badminton" ? 19 : 15, bnc: 0 };
 }
 
 // Revision tip: repeat difficult topics at spaced intervals.
 function restart() {
   score1 = 0; score2 = 0; gameOver = false; particles = [];
+  resetStats(); hideStats();
+  setPaused(false);
   players.forEach((p, i) => {
     p.x = gameMode === 1 ? (i === 0 ? 180 : 720) : [150, 300, 600, 750][i];
     p.y = ground - 60; p.vx = 0; p.vy = 0;
@@ -509,14 +589,19 @@ function restart() {
 }
 
 // Glossary: definitions to memorise for the test.
+function winScore() { return sport === "basketball" ? 15 : 10; }
 function updateScore() { scoreDisplay.textContent = score1 + " - " + score2; }
 
 // Study schedule: break the reading into short sessions.
 function awardPoint(winnerSide) {
   if (winnerSide === 0) score1++; else score2++;
+  stats[winnerSide].points++;
+  if (serveInProgress && serveHit && winnerSide === servingSide) stats[winnerSide].aces++;
+  longestRally = Math.max(longestRally, rally); rally = 0;
   updateScore();
-  if ((score1 >= 10 || score2 >= 10) && Math.abs(score1 - score2) >= 2) gameOver = true;
+  if ((score1 >= winScore() || score2 >= winScore()) && Math.abs(score1 - score2) >= 2) gameOver = true;
   restartBall(winnerSide);
+  if (gameOver) { sfx.win(); showStats(); } else sfx.point(winnerSide);
 }
 
 // Mnemonic to help remember this section.
@@ -534,24 +619,145 @@ function ballOnOwnSide(p) { return p.side === 0 ? ball.x <= netX : ball.x >= net
 // Review the key terms before moving on to the next chapter.
 function canHit(p) {
   if (!ballOnOwnSide(p)) return false;
-  if (serveInProgress) return serveHit && p.side !== servingSide && sport !== "volleyball";
+  if (serveInProgress) return serveHit && p.side !== servingSide;
   return true;
 }
 
+// Audio notes: short cues help recall, so each one stays brief.
+let audioCtx = null, soundOn = true;
+function audioReady() {
+  if (!soundOn) return null;
+  try {
+    if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; audioCtx = new AC(); }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  } catch (e) { return null; }
+}
+function tone(freq, dur, type, vol, endFreq, delay) {
+  const a = audioReady(); if (!a) return;
+  try {
+    const t0 = a.currentTime + (delay || 0);
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type || "sine";
+    o.frequency.setValueAtTime(freq, t0);
+    if (endFreq) o.frequency.exponentialRampToValueAtTime(endFreq, t0 + dur);
+    g.gain.setValueAtTime(vol || 0.15, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  } catch (e) {}
+}
+function hiss(dur, vol, freq, delay) {
+  const a = audioReady(); if (!a) return;
+  try {
+    const t0 = a.currentTime + (delay || 0), n = Math.max(1, Math.floor(a.sampleRate * dur));
+    const buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    f.type = "bandpass"; f.frequency.value = freq || 1500;
+    g.gain.value = vol || 0.2;
+    src.buffer = buf; src.connect(f); f.connect(g); g.connect(a.destination);
+    src.start(t0);
+  } catch (e) {}
+}
+const sfx = {
+  hit() {
+    if (sport === "volleyball") { tone(190, 0.1, "sine", 0.25, 80); hiss(0.05, 0.1, 700); }
+    else if (sport === "badminton") { tone(950, 0.06, "triangle", 0.18, 520); }
+  },
+  set() { tone(sport === "badminton" ? 700 : 300, 0.12, "sine", 0.18, sport === "badminton" ? 1000 : 480); },
+  drop() { tone(620, 0.09, "sine", 0.14, 380); tone(420, 0.12, "sine", 0.1, 300, 0.07); },
+  attack(streak) {
+    const up = Math.min(streak || 0, 5) * 90;
+    hiss(0.12, 0.28, 1800 + up);
+    tone(260 + up, 0.16, "sawtooth", 0.16, 120 + up / 2);
+    if (streak >= 2) tone(520 + up, 0.12, "square", 0.07, 900 + up, 0.04);
+  },
+  fault() { tone(180, 0.22, "sawtooth", 0.16, 90); tone(140, 0.25, "sawtooth", 0.12, 70, 0.12); },
+  dribble() { tone(130, 0.1, "sine", 0.3, 70); },
+  shoot() { tone(300, 0.16, "sine", 0.12, 540); hiss(0.1, 0.1, 1800); },
+  swish() { hiss(0.32, 0.22, 3200); tone(880, 0.12, "triangle", 0.1, 1200, 0.05); tone(660, 0.22, "triangle", 0.12, null, 0.12); },
+  rim() { tone(520, 0.12, "square", 0.08, 320); tone(780, 0.08, "triangle", 0.08); },
+  steal() { hiss(0.1, 0.3, 1200); tone(200, 0.1, "square", 0.12, 120); },
+  block() { tone(240, 0.1, "sawtooth", 0.2, 90); hiss(0.06, 0.2, 900); },
+  thud(v) { tone(150, 0.1, "sine", Math.min(0.3, v * 0.04), 80); },
+  serve() { tone(330, 0.1, "triangle", 0.2, 220); },
+  bounce() { tone(230, 0.09, "sine", 0.22, 110); },
+  net() { tone(150, 0.12, "square", 0.09, 90); hiss(0.06, 0.08, 500); },
+  point(side) { const b = side === 0 ? 523 : 392; tone(b, 0.14, "triangle", 0.18); tone(b * 1.5, 0.22, "triangle", 0.16, null, 0.1); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.28, "triangle", 0.2, null, i * 0.13)); }
+};
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById("soundBtn").textContent = "SOUND: " + (soundOn ? "ON" : "OFF");
+  if (soundOn) tone(660, 0.08, "triangle", 0.15);
+}
+
+// Streak colours: yellow, orange, red, blue, then violet and it stays violet.
+const STREAK_COLORS = ["#ffd23f", "#ff9a1f", "#e8382a", "#2f7dff", "#9b4dff"];
+function streakColor(n) { return STREAK_COLORS[Math.max(0, Math.min(n, 5) - 1)]; }
+
+// Progress record: tally the results of each practice round.
+function newSide() { return { points: 0, aces: 0, hits: 0, attacks: 0, sets: 0, drops: 0, bestStreak: 0, shots: 0, made: 0, threes: 0, steals: 0, blocks: 0, shoves: 0 }; }
+function resetStats() { stats = [newSide(), newSide()]; rally = 0; longestRally = 0; matchTicks = 0; statsOpen = false; streakOwner = [-1, -1]; }
+function fmtTime(ticks) { const sec = Math.floor(ticks / 60); return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
+function showStats() {
+  const S = SPORTS[sport], blueWon = score1 > score2;
+  document.getElementById("statsTitle").textContent = blueWon ? "BLUE WINS!" : "RED WINS!";
+  const rows = [["Points", "points"], ["Aces", "aces"], ["Total hits", "hits"], ["Attacks (" + S.spikeName.toLowerCase() + "s)", "attacks"], [S.setName.charAt(0) + S.setName.slice(1).toLowerCase() + " shots", "sets"]];
+  if (sport === "badminton") { rows.push(["Drop shots", "drops"]); rows.push(["Best smash streak", "bestStreak"]); }
+  if (sport === "basketball") { rows.length = 0; rows.push(["Points", "points"], ["Shots made", "made"], ["Shots taken", "shots"], ["3-pointers made", "threes"], ["Steals", "steals"], ["Blocks", "blocks"], ["Shoves landed", "shoves"]); }
+  const teamNames = gameMode === 1 ? (bot ? ["You", "Bot"] : ["Blue", "Red"]) : ["Blue team", "Red team"];
+  let html = '<div class="stat-note">Final score ' + score1 + " - " + score2 + "</div>";
+  html += '<table class="stat-table"><tr><th></th><th style="color:#248bff">' + teamNames[0] + '</th><th style="color:#ff4b55">' + teamNames[1] + "</th></tr>";
+  rows.forEach(r => {
+    const a = stats[0][r[1]], b = stats[1][r[1]];
+    html += "<tr><td>" + r[0] + '</td><td class="' + (a > b ? "lead" : "") + '">' + a + '</td><td class="' + (b > a ? "lead" : "") + '">' + b + "</td></tr>";
+  });
+  html += "</table>";
+  html += '<div class="stat-note">' + (sport === "basketball" ? "" : "Longest rally: <b>" + longestRally + " hits</b> &nbsp;·&nbsp; ") + "Match time: <b>" + fmtTime(matchTicks) + "</b></div>";
+  document.getElementById("statsBody").innerHTML = html;
+  document.getElementById("statsView").style.display = "flex";
+  statsOpen = true;
+  for (const k in keys) keys[k] = false;
+}
+function hideStats() { document.getElementById("statsView").style.display = "none"; statsOpen = false; }
+
 // Flashcards: quiz yourself, then check the answer.
-function registerHit(p) {
-  lastHitSide = p.side; ball.bnc = 0; ball.slice = false;
+function registerHit(p, isSmash = false) {
+  touches[p.side] = lastHitSide === p.side ? touches[p.side] + 1 : 1;
+  lastHitSide = p.side; ball.bnc = 0;
   hitShield = 10;
+  stats[p.side].hits++; rally++;
+  if (!isSmash) smashStreak[p.side] = 0;
   if (serveInProgress && serveHit && p.side !== servingSide) serveInProgress = false;
 }
 
 // Summary of this topic for exam revision.
-function tennisJitter() { return (Math.random() - 0.5) * 1.8; }
 
 function clearNetVy(speed, base, margin, halfG, cap = 9.5) {
   const t = Math.abs(netX - ball.x) / speed || 1;
   const need = (netTop - ball.r - margin - ball.y - halfG * t * t) / t;
   return Math.min(base, Math.max(need, -cap));
+}
+
+// Group discussion: a firm interruption gives the speaker room to think.
+function shove(p) {
+  if (p.shoveCD > 0) return;
+  let hit = false;
+  players.forEach(q => {
+    if (q.side === p.side || q.immune > 0 || q.stun > 0) return;
+    if (Math.hypot(q.x - p.x, q.y - p.y) > 85) return;
+    q.slideTimer = 16; q.vx = (q.x >= p.x ? 1 : -1) * 9; q.stun = 22;
+    q.charging = false; q.charge = 0;
+    if (q.y >= ground - 60) q.vy = -5;
+    stats[p.side].shoves++; hit = true;
+  });
+  if (!hit) return;
+  p.shoveCD = 90;
+  shockFx.push({ x: p.x, y: p.y - 10, t: 0 });
+  abilityEffect(p, "SHOVE!");
+  sfx.block();
 }
 
 // Practice questions - attempt before reading the solution.
@@ -564,25 +770,420 @@ function slide(p) {
   if (dir === 0) dir = p.side === 0 ? 1 : -1;
   p.vx = dir * 11; p.vy = 0;
   abilityEffect(p, "SLIDE");
+  if (sport === "basketball") shove(p);
+}
+
+// Highlight the main idea of each section in your notes.
+// Group project: two teams, two rooms, one shared set of notes.
+const hoops = [{ bx: 22, d: 1 }, { bx: WIDTH - 22, d: -1 }];
+function rimY() { return ground - 195; }
+function hoopCx(h) { return h.bx + h.d * 48; }
+function hoopBack(h) { return h.bx + h.d * 10; }
+function hoopFront(h) { return h.bx + h.d * 86; }
+const THREE_DIST = 260;
+let holder = -1, shotBy = -1, shotPts = 2, shotLive = false, scoreWait = 0, scoreWaitSide = 0;
+let shotAge = 0, ballTrail = [], shockFx = [];
+const SHOT_SAFE = 18;
+
+// Reading plan: set up the next round with a fresh start for both sides.
+function bbSetup(side) {
+  serveInProgress = false; serveHit = true; servingSide = side; lastHitSide = -1;
+  players.forEach((p, i) => {
+    p.x = gameMode === 1 ? (p.side === 0 ? 180 : 720) : [150, 300, 600, 750][i];
+    p.y = ground - 60; p.vx = 0; p.vy = 0; p.slideTimer = 0;
+    p.charging = false; p.charge = 0; p.immune = 0; p.dribCD = 0; p.stealCD = 0; p.noPick = 0; p.catchCD = 0; p.stun = 0; p.shoveCD = 0; shockFx = [];
+  });
+  const i = players.findIndex(p => p.side === side);
+  holder = i; shotBy = -1; shotLive = false; scoreWait = 0; shotAge = 0; ballTrail = [];
+  players[i].immune = 60;
+  ball = { x: players[i].x, y: players[i].y - 5, vx: 0, vy: 0, r: 13, bnc: 0 };
+}
+
+// Worked example: the angle depends on how far away the target is.
+function shotAngle(dx) { return (72 - 22 * Math.max(0, Math.min(1, (dx - 100) / 350))) * Math.PI / 180; }
+function shotSpeed(power) { return 9 + power * 7.5; }
+function shotCross(sx, sy, vx, vy) {
+  const g = SPORTS.basketball.g, ry = rimY();
+  let x = sx, y = sy;
+  for (let i = 0; i < 400; i++) {
+    const py = y;
+    vy += g; x += vx; y += vy;
+    if (vy > 0 && py < ry && y >= ry) return x;
+    if (y > ground + 50) return null;
+  }
+  return null;
+}
+// Answer check: the power range that lands the answer cleanly in the box.
+function shotModel(sx, sy, hoopIdx) {
+  const h = hoops[hoopIdx], cx = hoopCx(h), dir = cx > sx ? 1 : -1, dx = Math.abs(cx - sx), th = shotAngle(dx);
+  const errAt = pw => { const v = shotSpeed(pw), x = shotCross(sx, sy, dir * v * Math.cos(th), -v * Math.sin(th)); return x === null ? null : dir * (x - cx); };
+  const pts = [];
+  for (let i = 0; i <= 100; i++) { const e = errAt(i / 100); if (e !== null) pts.push([i / 100, e]); }
+  const find = t => {
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i - 1][1] < t && pts[i][1] >= t) {
+        let lo = pts[i - 1][0], hi = pts[i][0];
+        for (let k = 0; k < 14; k++) { const mid = (lo + hi) / 2, e = errAt(mid); if (e !== null && e < t) lo = mid; else hi = mid; }
+        return (lo + hi) / 2;
+      }
+    }
+    return null;
+  };
+  const ideal = find(0);
+  if (ideal === null) return null;
+  const lo = find(-19), hi = find(19);
+  return { ideal, lo: lo === null ? Math.max(0, ideal - 0.01) : lo, hi: hi === null ? Math.min(1, ideal + 0.01) : hi };
+}
+function releasePoint(p) {
+  const hi = p.side === 0 ? 1 : 0, cx = hoopCx(hoops[hi]), dir = cx > p.x ? 1 : -1;
+  return { sx: p.x + dir * 14, sy: p.y - 38, hi, dir };
+}
+function playerShotModel(p) { const r = releasePoint(p); return shotModel(r.sx, r.sy, r.hi); }
+
+function shootBall(p, power) {
+  const i = players.indexOf(p), r = releasePoint(p), h = hoops[r.hi];
+  const v = shotSpeed(power), th = shotAngle(Math.abs(hoopCx(h) - r.sx));
+  ball.x = r.sx; ball.y = r.sy; ball.vx = r.dir * v * Math.cos(th); ball.vy = -v * Math.sin(th);
+  holder = -1; shotBy = i; shotLive = true; shotAge = 0; p.noPick = 25;
+  shotPts = Math.abs(hoopCx(h) - p.x) > THREE_DIST ? 3 : 2;
+  stats[p.side].shots++;
+  abilityEffect(p, shotPts === 3 ? "3PT SHOT" : "SHOT");
+  sfx.shoot();
+}
+function dribble(p) {
+  if (p.dribCD > 0) return;
+  p.immune = 60; p.dribCD = 120;
+  abilityEffect(p, "DRIBBLE");
+  sfx.dribble();
+}
+function steal(p) {
+  if (p.stealCD > 0) return;
+  const h = players[holder];
+  if (Math.hypot(h.x - p.x, h.y - p.y) > 90) { p.stealCD = 40; abilityEffect(p, "STEAL"); return; }
+  if (h.immune > 0) { p.stealCD = 90; abilityEffect(p, "NO!"); sfx.block(); return; }
+  holder = players.indexOf(p);
+  h.charging = false; h.charge = 0;
+  p.immune = 45; p.stealCD = 60;
+  stats[p.side].steals++;
+  abilityEffect(p, "STEAL!");
+  sfx.steal();
+}
+function airborneBall() { return holder < 0 && scoreWait === 0 && ball.y + ball.r < ground - 4; }
+function tryCatch(p) {
+  if (!airborneBall()) return;
+  if (shotLive && (shotAge < SHOT_SAFE || p.side === players[shotBy].side)) return;
+  p.catchCD = 30;
+  if (Math.hypot(ball.x - p.x, ball.y - (p.y - 10)) > ball.r + p.radius + 32) { p.effect = "MISS"; p.effectTimer = 20; return; }
+  if (shotLive) stats[p.side].steals++;
+  holder = players.indexOf(p); shotLive = false; ballTrail = [];
+  p.immune = Math.max(p.immune, 45); p.charging = false; p.charge = 0;
+  abilityEffect(p, "CATCH!");
+  sfx.steal();
+}
+function hoopActions(p) {
+  const n = p.in, i = players.indexOf(p);
+  p.immune = Math.max(0, p.immune - 1);
+  p.dribCD = Math.max(0, p.dribCD - 1);
+  p.stealCD = Math.max(0, p.stealCD - 1);
+  p.noPick = Math.max(0, p.noPick - 1);
+  p.catchCD = Math.max(0, p.catchCD - 1);
+  p.shoveCD = Math.max(0, p.shoveCD - 1);
+  p.stun = Math.max(0, p.stun - 1);
+  if (p.stun > 0) { p.charging = false; p.charge = 0; return; }
+  if (scoreWait > 0) { p.charging = false; p.charge = 0; return; }
+  const has = holder === i;
+  if (has && n.set && !p.charging) { p.charging = true; p.charge = 0; }
+  else if (!has && n.set && p.catchCD === 0) tryCatch(p);
+  if (p.charging) {
+    if (!has) { p.charging = false; p.charge = 0; }
+    else if (n.setHeld) p.charge = Math.min(1, p.charge + 1 / 60);
+    else { p.charging = false; shootBall(p, p.charge); p.charge = 0; }
+  }
+  if (n.spike) {
+    if (holder === i) dribble(p);
+    else if (holder >= 0 && players[holder].side !== p.side) steal(p);
+  }
+}
+
+function scoreBasket(side, pts) {
+  if (side === 0) score1 += pts; else score2 += pts;
+  stats[side].points += pts; stats[side].made++;
+  if (pts === 3) stats[side].threes++;
+  updateScore();
+  shotLive = false;
+  sfx.swish();
+  if ((score1 >= winScore() || score2 >= winScore()) && Math.abs(score1 - score2) >= 2) { gameOver = true; sfx.win(); showStats(); return; }
+  scoreWait = 55; scoreWaitSide = side;
+}
+
+// One physics step for a free ball. fx is optional and receives events; returns the hoop index scored on, or -1.
+function bbStep(b, fx, canScore) {
+  const S = SPORTS.basketball, prevY = b.y, ry = rimY();
+  b.vy += S.g; b.x += b.vx; b.y += b.vy;
+  const wl = hoops[0].bx + 3 + b.r, wr = hoops[1].bx - 3 - b.r;
+  if (b.x < wl) { b.x = wl; b.vx *= -0.85; if (fx && b.y < ry + 20) fx.wall(); }
+  if (b.x > wr) { b.x = wr; b.vx *= -0.85; if (fx && b.y < ry + 20) fx.wall(); }
+  if (b.y < b.r) { b.y = b.r; b.vy *= -0.6; }
+  if (b.y + b.r >= ground) {
+    b.y = ground - b.r;
+    if (fx) fx.ground(b.vy);
+    b.vy *= -0.68; if (Math.abs(b.vy) < 1.8) b.vy = 0;
+    b.vx *= 0.97;
+  }
+  if (Math.abs(b.vx) < 0.04) b.vx = 0;
+  let scored = -1;
+  hoops.forEach((h, hi) => {
+    [hoopBack(h), hoopFront(h)].forEach(rx => {
+      const dx = b.x - rx, dy = b.y - ry, d = Math.hypot(dx, dy), min = b.r + 4;
+      if (d < min && d > 0) {
+        const nx = dx / d, ny = dy / d;
+        b.x = rx + nx * min; b.y = ry + ny * min;
+        const vn = b.vx * nx + b.vy * ny;
+        if (vn < 0) { b.vx -= 1.55 * vn * nx; b.vy -= 1.55 * vn * ny; if (fx) fx.rim(); }
+      }
+    });
+    if (canScore && prevY < ry && b.y >= ry && b.vy > 0 && Math.abs(b.x - hoopCx(h)) < 28) scored = hi;
+  });
+  return scored;
+}
+// Check a full attempt in a throwaway copy: does this power drop in from this release point?
+function shotScores(sx, sy, hi, pw) {
+  const h = hoops[hi], cx = hoopCx(h), dir = cx > sx ? 1 : -1, th = shotAngle(Math.abs(cx - sx)), v = shotSpeed(pw);
+  const b = { x: sx, y: sy, vx: dir * v * Math.cos(th), vy: -v * Math.sin(th), r: 13 };
+  for (let i = 0; i < 260; i++) {
+    const r = bbStep(b, null, true);
+    if (r === hi) return true;
+    if (r >= 0) return false;
+    if (b.y + b.r >= ground - 1 && Math.abs(b.vy) < 0.5 && i > 20) return false;
+  }
+  return false;
+}
+let windowCache = { key: "", val: null };
+// Answer key: the whole range of power that scores from here, plus the clean-swish centre.
+function shotWindow(sx, sy, hi) {
+  const key = Math.round(sx / 2) + "," + Math.round(sy / 2) + "," + hi;
+  if (windowCache.key === key) return windowCache.val;
+  let val = null;
+  const m = shotModel(sx, sy, hi);
+  let seed = m ? m.ideal : null;
+  if (seed === null) { for (let i = 0; i <= 50 && seed === null; i++) if (shotScores(sx, sy, hi, i / 50)) seed = i / 50; }
+  if (seed !== null && shotScores(sx, sy, hi, seed)) {
+    let lo = seed, up = seed;
+    while (lo > 0 && shotScores(sx, sy, hi, Math.max(0, lo - 0.02))) lo = Math.max(0, lo - 0.02);
+    let a = Math.max(0, lo - 0.02), c = lo;
+    if (lo > 0) for (let k = 0; k < 7; k++) { const mid = (a + c) / 2; if (shotScores(sx, sy, hi, mid)) c = mid; else a = mid; }
+    lo = c;
+    while (up < 1 && shotScores(sx, sy, hi, Math.min(1, up + 0.02))) up = Math.min(1, up + 0.02);
+    a = up; c = Math.min(1, up + 0.02);
+    if (up < 1) for (let k = 0; k < 7; k++) { const mid = (a + c) / 2; if (shotScores(sx, sy, hi, mid)) a = mid; else c = mid; }
+    up = a;
+    val = { ideal: seed, lo, hi: up };
+  }
+  windowCache = { key, val };
+  return val;
+}
+
+function updateBasketball() {
+  shockFx.forEach(f => f.t++); shockFx = shockFx.filter(f => f.t < 14);
+  if (scoreWait > 0 && --scoreWait === 0) { bbSetup(1 - scoreWaitSide); return; }
+  if (holder >= 0) {
+    const h = players[holder], dir = h.side === 0 ? 1 : -1;
+    h.dribT = (h.dribT || 0) + (h.immune > 0 ? 0.5 : 0.28);
+    const handY = h.y + 8, air = h.y < ground - 62;
+    const phase = Math.abs(Math.sin(h.dribT));
+    ball.x = h.x + dir * 24;
+    ball.y = air ? h.y - 12 : (ground - ball.r) - phase * (ground - ball.r - handY);
+    ball.vx = 0; ball.vy = 0; ballTrail = [];
+    return;
+  }
+  if (shotLive) shotAge++;
+  const fx = {
+    wall() { shotLive = false; sfx.rim(); },
+    rim() { shotLive = false; sfx.rim(); },
+    ground(vy) { if (vy > 3) sfx.thud(vy); shotLive = false; }
+  };
+  const sc = bbStep(ball, fx, scoreWait === 0);
+  if (sc >= 0) scoreBasket(sc === 1 ? 0 : 1, shotLive ? shotPts : 2);
+  if (shotLive) { ballTrail.push({ x: ball.x, y: ball.y }); if (ballTrail.length > 18) ballTrail.shift(); } else if (ballTrail.length) ballTrail.shift();
+
+  players.forEach((p, i) => {
+    if (scoreWait > 0 || gameOver) return;
+    const dx = ball.x - p.x, dy = ball.y - (p.y - 10), dist = Math.hypot(dx, dy), min = ball.r + (p.slideTimer > 0 ? 32 : p.radius);
+    if (dist >= min || dist === 0) return;
+    if (shotLive) {
+      if (p.side === players[shotBy].side || shotAge < SHOT_SAFE) return;
+      const nx = dx / dist, ny = dy / dist, sp = Math.max(6, Math.hypot(ball.vx, ball.vy) * 0.7);
+      ball.x = p.x + nx * min; ball.y = p.y - 10 + ny * min;
+      ball.vx = nx * sp; ball.vy = Math.min(ny * sp, -3);
+      shotLive = false; stats[p.side].blocks++;
+      abilityEffect(p, "BLOCK!"); sfx.block();
+      return;
+    }
+    if (p.noPick > 0 || holder >= 0) return;
+    holder = i; p.immune = Math.max(p.immune, 30);
+    p.charging = false; p.charge = 0;
+  });
+}
+
+// Class timetable: pick a quiet spot, then work through the checklist.
+function botBasket(p, n, L) {
+  const me = players.indexOf(p), opp = players.find(q => q.side !== p.side);
+  const atk = hoops[0], def = hoops[1], cx = hoopCx(atk);
+  const grounded = p.y >= ground - 60;
+  let target = p.x;
+  if (scoreWait > 0) { bot.spot = null; bot.chargeTarget = null; }
+  else if (holder === me) {
+    if (bot.spot == null) { bot.spot = L.range[0] + Math.random() * (L.range[1] - L.range[0]); bot.chargeTarget = null; }
+    target = cx + bot.spot;
+    const near = Math.hypot(opp.x - p.x, opp.y - p.y) < 120;
+    if (near && p.dribCD === 0 && !p.charging && Math.random() < L.bdrib * 0.1) n.spike = true;
+    if (!p.charging && Math.abs(p.x - target) < 30 && grounded) { n.set = true; n.setHeld = true; }
+    if (p.charging) {
+      if (bot.chargeTarget == null) {
+        const r = releasePoint(p), m = shotWindow(r.sx, r.sy, r.hi);
+        const noise = L.aim * (Math.random() + Math.random() - 1) * 1.5;
+        bot.chargeTarget = m ? Math.max(0.05, Math.min(1, m.ideal + noise)) : 0.7;
+      }
+      n.setHeld = p.charge < bot.chargeTarget;
+    }
+  } else if (holder >= 0) {
+    bot.spot = null; bot.chargeTarget = null;
+    const h = players[holder], dist = Math.hypot(h.x - p.x, h.y - p.y);
+    target = Math.min(h.x + 50, hoopCx(def));
+    if (dist < 85 && p.stealCD === 0 && Math.random() < L.bsteal * 0.12 && (h.immune === 0 || Math.random() < 0.05)) n.spike = true;
+    if (h.charging && dist < 150 && grounded && Math.random() < L.block * 0.2) n.jump = true;
+  } else {
+    bot.spot = null; bot.chargeTarget = null;
+    target = ball.x + ball.vx * 8;
+    if (ball.y < p.y - 70 && Math.abs(ball.x - p.x) < 45 && grounded) n.jump = true;
+    if (airborneBall() && p.catchCD === 0 && !(shotLive && (shotAge < SHOT_SAFE || players[shotBy].side === p.side))) {
+      if (Math.hypot(ball.x - p.x, ball.y - (p.y - 10)) < ball.r + p.radius + 32 && Math.random() < L.grab) n.set = true;
+    }
+  }
+  const dx = target - p.x;
+  if (Math.abs(dx) > 8 && !p.charging && Math.random() < L.move) { if (dx < 0) n.left = true; else n.right = true; }
+  if (scoreWait === 0 && p.shoveCD === 0 && p.stun === 0 && !p.charging) {
+    if (holder === me && Math.hypot(opp.x - p.x, opp.y - p.y) < 80 && opp.immune === 0 && Math.random() < L.shove * 0.08) {
+      n.slide = true; n.left = opp.x > p.x; n.right = opp.x < p.x;
+    } else if (holder >= 0 && holder !== me) {
+      const h = players[holder];
+      if (h.charging && h.immune === 0 && Math.hypot(h.x - p.x, h.y - p.y) < 80 && Math.random() < L.shove * 0.3) {
+        n.slide = true; n.left = h.x < p.x; n.right = h.x > p.x;
+      }
+    }
+  }
+}
+
+// Revision limit: only three review passes per topic in a row.
+function touchFault(p) {
+  if (sport !== "volleyball" || gameMode !== 2) return false;
+  if (lastHitSide !== p.side || touches[p.side] < 3) return false;
+  notice = { text: "FOURTH TOUCH", until: performance.now() + 1400 };
+  sfx.fault();
+  awardPoint(1 - p.side);
+  return true;
+}
+
+// Fast opener: a strong first answer on the exam paper.
+function jumpServe(p) {
+  if (p.spikeCooldown > 0 || p.y >= ground - 62 || ballDistance(p) > SPORTS[sport].hitReach) return;
+  const dir = p.side === 0 ? 1 : -1;
+  serveHit = true; servePlayerIndex = players.indexOf(p);
+  lastHitSide = p.side; touches[p.side] = 0; ball.bnc = 0; hitShield = 10;
+  stats[p.side].hits++; rally++;
+  ball.vx = dir * 12; ball.vy = clearNetVy(12, 5, 8, 0.125);
+  ball.x += dir * 12;
+  p.spikeCooldown = 50; p.serveBuf = 0;
+  abilityEffect(p, "JUMP SERVE");
+  createParticles(ball.x, ball.y, "#ffd166", 18);
+  sfx.attack(0);
+}
+
+// Spike planner: try several speeds and pick the one that lands where the chosen style should.
+function spikeFlight(vx, vy0) {
+  const S = SPORTS[sport], r = ball.r, dir = vx > 0 ? 1 : -1;
+  let x = ball.x + dir * 12, y = ball.y, vy = vy0;
+  for (let i = 0; i < 300; i++) {
+    vy += S.g; x += vx; y += vy;
+    if (Math.abs(x - netX) < r + 5 + Math.abs(vx) * 0.5 && y + r > netTop - 6) return null;
+    if (x < r || x > WIDTH - r) return 9999;
+    if (y < r) return null;
+    if (y + r >= ground) { const past = dir * (x - netX); return past > 10 ? past : null; }
+  }
+  return null;
+}
+function spikeVy(vx, cap) {
+  for (let vy0 = cap; vy0 >= -11; vy0 -= 0.25) {
+    const past = spikeFlight(vx, vy0);
+    if (past !== null) return { vy: vy0, past };
+  }
+  return null;
+}
+function planSpike(dir, cands, lo, hi) {
+  let best = null, bestGap = Infinity;
+  for (const c of cands) {
+    const r = spikeVy(dir * c[0], c[1]);
+    if (!r) continue;
+    const gap = r.past < lo ? lo - r.past : (r.past > hi ? r.past - hi : 0);
+    if (gap < bestGap) { bestGap = gap; best = { vx: dir * c[0], vy: r.vy }; }
+    if (gap === 0) break;
+  }
+  return best || { vx: dir * 9, vy: clearNetVy(9, 11, 8, 0.125) };
+}
+
+// Drop shot planner: find a gentle arc that just clears the net and lands close behind it.
+function dropSolve(dir, gf) {
+  const S = SPORTS[sport], x0 = ball.x + dir * 8, y0 = ball.y, r = ball.r;
+  const speeds = [2, 2.6, 3.2, 4, 5, 6.2, 7.5, 9, 11];
+  for (const sp of speeds) {
+    for (let up = 1; up <= 13; up += 0.5) {
+      let x = x0, y = y0, vx = dir * sp, vy = -up, ok = true, landed = false;
+      for (let i = 0; i < 400; i++) {
+        vy += S.g * gf;
+        if (S.k) { const f = S.k * Math.hypot(vx, vy); vx -= vx * f; vy -= vy * f; } else vx *= 0.999;
+        x += vx; y += vy;
+        if (x < r || x > WIDTH - r) { ok = false; break; }
+        if (Math.abs(x - netX) < r + 5 && y + r > netTop - 10) { ok = false; break; }
+        if (y + r >= ground) { landed = true; break; }
+      }
+      if (!ok || !landed) continue;
+      const past = dir * (x - netX);
+      if (past >= 25 && past <= 150) return { vx: dir * sp, vy: -up };
+    }
+  }
+  return null;
 }
 
 // Highlight the main idea of each section in your notes.
 function setBall(p) {
   if (p.setCooldown > 0 || !canHit(p) || ballDistance(p) > SPORTS[sport].setReach) return;
-  p.setCooldown = sport === "tennis" ? 50 : 35;
+  if (touchFault(p)) return;
+  p.setCooldown = 35;
   const dir = p.side === 0 ? 1 : -1, S = SPORTS[sport];
+  const fwd = p.isBot ? !!p.in.dropWanted : (p.side === 0 ? p.in.right : p.in.left);
   registerHit(p);
-  if (sport === "tennis") {
-    const vx = 10.5;
-    ball.vy = clearNetVy(vx, -1, 4, 0.077) + tennisJitter();
-    ball.vx = dir * vx + p.vx * 0.15;
-    ball.slice = true;
-  } else {
-    ball.vx = dir * S.setV[0] + p.vx * 0.2;
-    ball.vy = sport === "volleyball" ? -Math.min(-S.setV[1], Math.sqrt(0.5 * Math.max(ball.y - 30, 25))) : S.setV[1];
+  let sd = dir, label = S.setName, done = false;
+  if (fwd && sport === "badminton") {
+    const dr = dropSolve(dir, 1);
+    if (dr) { ball.vx = dr.vx; ball.vy = dr.vy; label = "DROP"; done = true; stats[p.side].drops++; }
   }
-  ball.x += dir * 8;
-  abilityEffect(p, S.setName);
+  if (!done) {
+    stats[p.side].sets++;
+    sd = p.in.left ? -1 : (p.in.right ? 1 : dir);
+    const vy0 = sport === "volleyball" ? -Math.min(-S.setV[1], Math.sqrt(0.5 * Math.max(ball.y - 30, 25))) : S.setV[1];
+    let vx0 = sd * S.setV[0] + p.vx * 0.2;
+    if (sport === "volleyball" && fwd) {
+      const tx = netX - dir * 38, ys = netTop - 70, disc = vy0 * vy0 + 2 * S.g * (ys - ball.y);
+      const t = disc > 0 ? (-vy0 + Math.sqrt(disc)) / S.g : -vy0 / S.g;
+      const dist = dir * (tx - (ball.x + dir * 8));
+      vx0 = dir * Math.max(0.5, Math.min(9, dist / t));
+      label = "NET SET";
+    }
+    ball.vx = vx0; ball.vy = vy0;
+  }
+  ball.x += sd * 8;
+  abilityEffect(p, label);
+  if (label === "DROP") sfx.drop(); else sfx.set();
 }
 
 // Revision tip: repeat difficult topics at spaced intervals.
@@ -591,26 +1192,33 @@ function spikeBall(p, power = 1) {
   const air = p.y < ground - 62, dir = p.side === 0 ? 1 : -1;
   let vx, vy, label;
   if (sport === "volleyball") {
-    if (!air) return;
-    vx = dir * 9; vy = clearNetVy(9, 11, 8, 0.125); label = "SPIKE";
-  } else if (sport === "badminton") {
-
+    if (!air || serveInProgress) return;
+    if (touchFault(p)) return;
+    const toward = p.isBot ? p.in.style === "cut" : (p.side === 0 ? p.in.right : p.in.left);
+    const away = p.isBot ? p.in.style === "deep" : (p.side === 0 ? p.in.left : p.in.right);
+    if (toward) { const r = planSpike(dir, [[3, 14], [4, 14], [5, 14], [6, 14], [7, 14], [8.5, 14]], 20, 90); vx = r.vx; vy = r.vy; label = "CUT"; }
+    else if (away) { const r = planSpike(dir, [[13.5, 4], [13.5, 7], [12, 7], [12, 9], [10.5, 9], [10.5, 11], [9, 11]], 250, 400); vx = r.vx; vy = r.vy; label = "DEEP"; }
+    else { const r = planSpike(dir, [[9, 11], [8, 11], [10, 11], [7, 11], [12, 11]], 100, 280); vx = r.vx; vy = r.vy; label = "SPIKE"; }
+  } else {
     const deg = SMASH.a0 + (SMASH.a1 - SMASH.a0) * power;
     const a = deg * Math.PI / 180;
-    const sp = SMASH.s0 + (SMASH.s1 - SMASH.s0) * power;
+    let sp = SMASH.s0 + (SMASH.s1 - SMASH.s0) * power;
+    if (power >= 0.5) { smashStreak[p.side]++; sp = Math.min(38, sp * (1 + 0.12 * Math.min(smashStreak[p.side] - 1, 4))); }
     vx = dir * Math.cos(a) * sp; vy = -Math.sin(a) * sp;
-    if (power < 0.7) vy = clearNetVy(Math.abs(vx), vy, 16, 0.115, 14);   // flat and mid holds clear the net; full smashes do not
+    if (power < 0.7) vy = clearNetVy(Math.abs(vx), vy, 16, 0.115, 14);
     label = power < 0.5 ? "CLEAR" : "SMASH " + Math.round(power * 100) + "%";
-  } else {
-    if (air && ball.y < netTop - 30) { registerHit(p); vx = dir * 12; vy = clearNetVy(12, 9, 4, 0.14) + tennisJitter(); label = "SMASH"; }
-    else { registerHit(p); vx = dir * 16; vy = clearNetVy(16, -1, 4, 0.14) + tennisJitter(); label = "DRIVE"; }
   }
-  if (sport !== "tennis") registerHit(p);
-  p.spikeCooldown = sport === "tennis" ? 60 : (sport === "badminton" ? 30 : 50);
+  registerHit(p, sport === "badminton" && power >= 0.5);
+  const bSmash = sport === "badminton" && power >= 0.5;
+  if (bSmash) { streakOwner[p.side] = players.indexOf(p); stats[p.side].bestStreak = Math.max(stats[p.side].bestStreak, smashStreak[p.side]); }
+  if (sport === "badminton" && !bSmash) stats[p.side].sets++; else stats[p.side].attacks++;
+  p.fxColor = bSmash ? streakColor(smashStreak[p.side]) : null;
+  p.spikeCooldown = sport === "badminton" ? 30 : 50;
   ball.vx = vx + p.vx * 0.2; ball.vy = vy;
   ball.x += dir * 12;
   abilityEffect(p, label);
-  createParticles(ball.x, ball.y, "#ffd166", 18);
+  createParticles(ball.x, ball.y, p.fxColor || "#ffd166", 18 + (bSmash ? 5 * Math.min(smashStreak[p.side], 5) : 0));
+  if (bSmash) sfx.attack(smashStreak[p.side]); else if (sport === "badminton") sfx.set(); else sfx.attack(label === "DEEP" ? 1 : 0);
 }
 
 // Glossary: definitions to memorise for the test.
@@ -624,9 +1232,17 @@ function movePlayers() {
     if (p.effectTimer === 0) p.effect = "";
 
     if (n.slide) slide(p);
-    if (n.set) setBall(p);
+    if (sport === "basketball") hoopActions(p);
+    else if (n.set) setBall(p);
+    if (sport === "volleyball") {
+      const serving = serveInProgress && !serveHit && p.side === servingSide;
+      p.serveBuf = Math.max(0, (p.serveBuf || 0) - 1);
+      if (serving && n.spike) p.serveBuf = 10;
+      if (serving && p.serveBuf > 0) jumpServe(p);
+    }
 
-    if (sport === "badminton") {
+    if (sport === "basketball") {
+    } else if (sport === "badminton") {
 
       if (n.spike && p.spikeCooldown === 0) { p.charging = true; p.charge = 0; }
       if (p.charging) {
@@ -636,16 +1252,16 @@ function movePlayers() {
     } else if (n.spike) spikeBall(p, 1);
 
     if (p.slideTimer > 0) p.slideTimer--;
-    else { if (n.left) p.x -= 5; if (n.right) p.x += 5; }
+    else if (!p.stun) { if (n.left) p.x -= 5; if (n.right) p.x += 5; }
 
-    if (n.jump && p.y >= ground - 60) { p.vy = -S.jump; p.slideTimer = 0; }
+    if (n.jump && p.y >= ground - 60 && !p.stun) { p.vy = -S.jump; p.slideTimer = 0; }
 
     p.vy += 0.55;
     p.y += p.vy;
     if (p.y > ground - 60) { p.y = ground - 60; p.vy = 0; }
 
     p.x = Math.max(25, Math.min(875, p.x));
-    if (p.side === 0) p.x = Math.min(p.x, netX - 30); else p.x = Math.max(p.x, netX + 30);
+    if (sport !== "basketball") { if (p.side === 0) p.x = Math.min(p.x, netX - 30); else p.x = Math.max(p.x, netX + 30); }
 
     if (p.slideTimer > 0) { p.x += p.vx; p.vx *= 0.88; } else p.vx = 0;
   });
@@ -672,52 +1288,35 @@ function collideBall() {
 
       if (!serveHit && p.side === servingSide) {
         serveHit = true; servePlayerIndex = i;
-        lastHitSide = p.side; ball.bnc = 0; hitShield = 10;
-        if (sport === "tennis") { ball.vx = dir * S.serve[0]; ball.vy = clearNetVy(S.serve[0], 2, 6, 0.14); }
-        else { ball.vx = dir * S.serve[0]; ball.vy = S.serve[1]; }
+        lastHitSide = p.side; ball.bnc = 0; hitShield = 10; touches[p.side] = 0;
+        stats[p.side].hits++; rally++; sfx.serve();
+        ball.vx = dir * S.serve[0]; ball.vy = S.serve[1];
         const nx = dx / dist, ny = dy / dist;
         ball.x = p.x + nx * minDist; ball.y = p.y - 10 + ny * minDist;
         createParticles(ball.x, ball.y, p.color, 5);
         return;
       }
-      if (serveHit && p.side === servingSide) { awardPoint(p.side === 0 ? 1 : 0); return; }
+      if (serveHit && p.side === servingSide && i === servePlayerIndex) { awardPoint(p.side === 0 ? 1 : 0); return; }
       if (p.side !== servingSide) serveInProgress = false;
     }
 
     const nx = dx / dist, ny = dy / dist;
     ball.x = p.x + nx * minDist; ball.y = p.y - 10 + ny * minDist;
+    if (touchFault(p)) return;
     registerHit(p);
 
-    if (sport === "tennis") {
-
-      ball.vx = dir * 8 + p.vx * 0.3;
-      ball.vy = clearNetVy(8, -3, 6, 0.14) + tennisJitter();
-    } else {
-      const speed = Math.hypot(ball.vx, ball.vy);
-      const floor = sport === "badminton" ? 12 : 6;
-      ball.vx = nx * Math.max(speed, floor) + p.vx * 0.3;
-      ball.vy = ny * Math.max(speed, floor) - 1;
-    }
+    const speed = Math.hypot(ball.vx, ball.vy);
+    const floor = sport === "badminton" ? 12 : 6;
+    ball.vx = nx * Math.max(speed, floor) + p.vx * 0.3;
+    ball.vy = ny * Math.max(speed, floor) - 1;
     createParticles(ball.x, ball.y, p.color, 5);
+    sfx.hit();
   }
 }
 
 // Mnemonic to help remember this section.
 function groundContact() {
-  const side = ball.x < netX ? 0 : 1;
-  if (sport !== "tennis" || lastHitSide < 0) { awardPoint(1 - side); return; }
-  if (ball.bnc === 0) {
-    const out = ball.x < 60 || ball.x > WIDTH - 60;
-    if (side === lastHitSide || out) { awardPoint(1 - lastHitSide); return; }
-    ball.bnc = 1;
-    const sl = ball.slice;
-    ball.y = ground - ball.r;
-    ball.vy = -Math.max(Math.abs(ball.vy) * (sl ? 0.4 : 0.7), sl ? 2.5 : 4.5);
-    ball.vx *= sl ? 1.05 : 0.97;
-    createParticles(ball.x, ground, "#ffffff", 7);
-  } else {
-    awardPoint(lastHitSide);
-  }
+  awardPoint(ball.x < netX ? 1 : 0);
 }
 
 // Past-paper style question for self-assessment.
@@ -726,7 +1325,7 @@ function updateBall() {
   if (hitShield > 0) hitShield--;
   const S = SPORTS[sport];
 
-  ball.vy += S.g * (ball.slice ? 0.55 : 1);
+  ball.vy += S.g;
   if (S.k) { const f = S.k * Math.hypot(ball.vx, ball.vy); ball.vx -= ball.vx * f; ball.vy -= ball.vy * f; }
   ball.x += ball.vx; ball.y += ball.vy;
 
@@ -735,8 +1334,8 @@ function updateBall() {
   if (ball.y < ball.r) { ball.y = ball.r; ball.vy *= -0.85; }
 
   if (Math.abs(ball.x - netX) < ball.r + 5 && ball.y + ball.r > netTop) {
-    if (ball.y < netTop && ball.vy > 0) { ball.y = netTop - ball.r; ball.vy *= -0.6; }
-    else { ball.x = ball.x < netX ? netX - 5 - ball.r : netX + 5 + ball.r; ball.vx *= -0.8; }
+    if (ball.y < netTop && ball.vy > 0) { ball.y = netTop - ball.r; ball.vy *= -0.6; sfx.net(); }
+    else { ball.x = ball.x < netX ? netX - 5 - ball.r : netX + 5 + ball.r; ball.vx *= -0.8; sfx.net(); }
   }
 
   collideBall();
@@ -766,6 +1365,7 @@ function drawCourt() {
   ctx.fillRect(0, ground, WIDTH, 55);
   ctx.strokeStyle = "white"; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(0, ground); ctx.lineTo(WIDTH, ground); ctx.stroke();
+  if (sport === "basketball") { drawHoops(); return; }
 
   const h = ground - netTop;
   ctx.fillStyle = "#333"; ctx.fillRect(netX - 7, netTop - 8, 14, h + 8);
@@ -773,7 +1373,6 @@ function drawCourt() {
   ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
   for (let y = netTop + 8; y < ground; y += 12) { ctx.beginPath(); ctx.moveTo(netX - 17, y); ctx.lineTo(netX + 17, y); ctx.stroke(); }
   ctx.fillStyle = "#ffffff"; ctx.fillRect(netX - 17, netTop, 34, 5);
-  if (sport === "tennis") { ctx.fillRect(58, ground, 4, 55); ctx.fillRect(WIDTH - 62, ground, 4, 55); }
 }
 
 // Flashcards: quiz yourself, then check the answer.
@@ -812,14 +1411,25 @@ function drawPlayer(p) {
     if (sport === "volleyball") drawArms(p);
   }
 
-  if (sport !== "volleyball") drawRacquet(p);
+  if (sport === "badminton") drawRacquet(p);
+  if (sport === "basketball") drawHolderBits(p);
 
-  if (gameMode === 2) {
-    ctx.fillStyle = "white"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center";
-    ctx.fillText(players.indexOf(p) + 1, p.x, p.y - 35);
-  }
+  ctx.fillStyle = "white"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center";
+  ctx.fillText(players.indexOf(p) + 1, p.x, p.y - 35);
 
-  if (p.charging) {
+  if (p.charging && sport === "basketball") {
+    const r0 = releasePoint(p), m = shotWindow(r0.sx, r0.sy, r0.hi), hi = p.side === 0 ? 1 : 0, away = hoopCx(hoops[hi]) > p.x ? -1 : 1;
+    const gx = p.x + away * (p.radius + 20), top = p.y - 60, gh = 84, gw = 10;
+    ctx.fillStyle = "#1d1d1b"; ctx.fillRect(gx - gw / 2 - 2, top - 2, gw + 4, gh + 4);
+    ctx.fillStyle = "#f2b134"; ctx.fillRect(gx - gw / 2, top + gh * (1 - p.charge), gw, gh * p.charge);
+    if (m) {
+      ctx.fillStyle = "#3ddc84"; ctx.fillRect(gx - gw / 2 - 4, top + gh * (1 - m.hi), gw + 8, Math.max(3, gh * (m.hi - m.lo)));
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(gx - gw / 2 - 4, top + gh * (1 - m.ideal) - 1, gw + 8, 2);
+    }
+    ctx.fillStyle = "#1d1d1b"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center";
+    const three = Math.abs(hoopCx(hoops[hi]) - p.x) > THREE_DIST;
+    ctx.fillText(Math.round(p.charge * 100) + "%" + (three ? " (3)" : ""), gx, top - 7);
+  } else if (p.charging) {
     const w = 44, bx = p.x - w / 2, by = p.y - 92;
     ctx.fillStyle = "#1d1d1b"; ctx.fillRect(bx - 2, by - 2, w + 4, 10);
     ctx.fillStyle = p.charge < 0.5 ? "#f2b134" : (p.charge < 0.95 ? "#e8782a" : "#d9381e");
@@ -829,8 +1439,14 @@ function drawPlayer(p) {
     ctx.fillText((p.charge < 0.5 ? "CLEAR " : "SMASH ") + Math.round(p.charge * 100) + "%", p.x, by - 6);
   }
 
+  if (sport === "badminton" && smashStreak[p.side] >= 1 && streakOwner[p.side] === players.indexOf(p)) {
+    ctx.save(); ctx.font = "bold 15px Arial"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = "#1d1d1b";
+    const t = "STREAK x" + smashStreak[p.side];
+    ctx.strokeText(t, p.x, p.y - 74); ctx.fillStyle = streakColor(smashStreak[p.side]); ctx.fillText(t, p.x, p.y - 74); ctx.restore();
+  }
+
   if (p.effectTimer > 0) {
-    ctx.fillStyle = "#ffd166"; ctx.font = "bold 18px Arial"; ctx.textAlign = "center";
+    ctx.fillStyle = (p.fxColor && p.effect.startsWith("SMASH")) ? p.fxColor : "#ffd166"; ctx.font = "bold 18px Arial"; ctx.textAlign = "center";
     ctx.fillText(p.effect, p.x, p.y - 55);
   }
 }
@@ -840,11 +1456,11 @@ function drawRacquet(p) {
   const d = p.side === 0 ? 1 : -1, kind = (p.effect || "").split(" ")[0];
   let a = -1.0;
   if (p.slideTimer > 0) a = 0.1;
-  else if (p.effectTimer > 0) a = ["SPIKE","SMASH","DRIVE"].includes(kind) ? 0.6 : (kind === "SLICE" ? 0.15 : -1.5);
+  else if (p.effectTimer > 0) a = ["SPIKE","SMASH","CUT","DEEP","JUMP"].includes(kind) ? 0.6 : -1.5;
   const theta = d === 1 ? a : Math.PI - a;
   const sx = p.x + d * 14, sy = p.y - 2, handle = 16;
   const hx = sx + Math.cos(theta) * handle, hy = sy + Math.sin(theta) * handle;
-  const big = sport === "tennis", rx = big ? 18 : 15, ry = big ? 13 : 10;
+  const rx = 15, ry = 10;
   const cx = hx + Math.cos(theta) * rx, cy = hy + Math.sin(theta) * rx;
 
   ctx.lineCap = "round"; ctx.strokeStyle = "#222"; ctx.lineWidth = 4;
@@ -857,25 +1473,9 @@ function drawRacquet(p) {
   for (let x = -rx + 5; x < rx - 3; x += 5) { ctx.moveTo(x, -ry + 2); ctx.lineTo(x, ry - 2); }
   for (let y = -ry + 4; y < ry - 2; y += 5) { ctx.moveTo(-rx + 3, y); ctx.lineTo(rx - 3, y); }
   ctx.stroke();
-  ctx.strokeStyle = big ? "#222" : "#555"; ctx.lineWidth = 3;
+  ctx.strokeStyle = "#555"; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
   ctx.restore();
-}
-
-// Highlight the main idea of each section in your notes.
-function drawTennisBall() {
-  if (ball.slice) {
-    ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 2;
-    const sgn = ball.vx >= 0 ? -1 : 1;
-    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(ball.x + sgn * 18, ball.y + i * 6); ctx.lineTo(ball.x + sgn * 34, ball.y + i * 6); ctx.stroke(); }
-  }
-  ctx.fillStyle = "#c8f03c";
-  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = "white"; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(ball.x - ball.r * 1.15, ball.y, ball.r * 0.95, -0.9, 0.9); ctx.stroke();
-  ctx.beginPath(); ctx.arc(ball.x + ball.r * 1.15, ball.y, ball.r * 0.95, Math.PI - 0.9, Math.PI + 0.9); ctx.stroke();
-  ctx.strokeStyle = "#6b8e0a";
-  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.stroke();
 }
 
 // Revision tip: repeat difficult topics at spaced intervals.
@@ -894,9 +1494,9 @@ function drawBirdie() {
   ctx.restore();
 }
 
-// Glossary: definitions to memorise for the test.
+// Highlight the main idea of each section in your notes.
 function drawBall() {
-  if (sport === "tennis") { drawTennisBall(); return; }
+  if (sport === "basketball") { drawBasketball(); return; }
   if (sport === "badminton") { drawBirdie(); return; }
   ctx.fillStyle = "#ffffff";
   ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
@@ -911,13 +1511,14 @@ function drawBall() {
 // Study schedule: break the reading into short sessions.
 function drawCues() {
   if (!gameStarted || gameOver) return;
+  if (sport === "basketball") { drawHoopCues(); return; }
   const S = SPORTS[sport];
   let canSet = false, canSpike = false;
   for (const p of players) {
     if (!canHit(p)) continue;
     const d = ballDistance(p);
     if (d < S.setReach) canSet = true;
-    if (d < S.hitReach && (sport !== "volleyball" || p.y < ground - 62)) canSpike = true;
+    if (d < S.hitReach && (sport !== "volleyball" || (p.y < ground - 62 && !serveInProgress))) canSpike = true;
   }
   if (canSet || canSpike) {
     const col = canSpike ? "#e8382a" : "#f2b134";
@@ -930,18 +1531,14 @@ function drawCues() {
     ctx.fillText(canSpike ? S.spikeName : S.setName, ball.x, ball.y - rad - 6);
     ctx.restore();
   }
-  if (sport === "tennis" && ball.bnc > 0) {
-    ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(ball.x, ball.y, 23, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
-  }
   for (const p of players) {
     if (p.effectTimer < 22) continue;
     const kind = (p.effect || "").split(" ")[0];
-    const strong = ["SPIKE","SMASH","DRIVE"].includes(kind);
-    if (!strong && !["SET","DROP","SLICE","CLEAR"].includes(kind)) continue;
+    const strong = ["SPIKE","SMASH","CUT","DEEP","JUMP"].includes(kind);
+    if (!strong && !["SET","NET","DROP","CLEAR"].includes(kind)) continue;
     const k = (p.effectTimer - 21) / 9;
     ctx.save();
-    ctx.globalAlpha = k; ctx.strokeStyle = strong ? "#e8382a" : "#f2b134"; ctx.lineWidth = 4;
+    ctx.globalAlpha = k; ctx.strokeStyle = strong ? (p.fxColor || "#e8382a") : "#f2b134"; ctx.lineWidth = 4;
     ctx.beginPath(); ctx.arc(ball.x, ball.y, 16 + (1 - k) * 34, 0, Math.PI * 2); ctx.stroke();
     if (strong) {
       const sp = Math.hypot(ball.vx, ball.vy) || 1, ux = ball.vx / sp, uy = ball.vy / sp;
@@ -958,12 +1555,140 @@ function drawCues() {
 }
 
 // Mnemonic to help remember this section.
+function drawHolderBits(p) {
+  const i = players.indexOf(p);
+  if (p.immune > 0) {
+    ctx.save(); ctx.globalAlpha = 0.5 + 0.4 * Math.sin(performance.now() / 90);
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.arc(p.x, p.y - 10, p.radius + 9, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  const cd = holder === i ? p.dribCD / 120 : p.stealCD / 90;
+  if (p.shoveCD > 0) { ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fillRect(p.x - 22, p.y + 43, 44, 4); ctx.fillStyle = "#7fb8ff"; ctx.fillRect(p.x - 22, p.y + 43, 44 * (1 - p.shoveCD / 90), 4); }
+  if (cd > 0) {
+    ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fillRect(p.x - 22, p.y + 36, 44, 5);
+    ctx.fillStyle = "#f2b134"; ctx.fillRect(p.x - 22, p.y + 36, 44 * (1 - cd), 5);
+  }
+  if (holder === i) {
+    const d = p.side === 0 ? 1 : -1;
+    ctx.strokeStyle = "#222"; ctx.lineWidth = 5; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(p.x + d * 10, p.y - 4); ctx.lineTo(ball.x - d * 8, Math.min(ball.y, p.y + 6)); ctx.stroke();
+  }
+}
+
+function drawHoops() {
+  const ry = rimY();
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.75)"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(netX, ground); ctx.lineTo(netX, ground + 55); ctx.stroke();
+  hoops.forEach(h => {
+    const x3 = hoopCx(h) + h.d * THREE_DIST;
+    ctx.fillStyle = "rgba(201,80,31,0.35)"; ctx.fillRect(Math.min(h.bx, h.bx + h.d * 190), ground, 190, 55);
+    ctx.setLineDash([6, 5]); ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x3, ground + 2); ctx.lineTo(x3, ground + 55); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x3, 140); ctx.lineTo(x3, ground); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#555"; ctx.fillRect(h.bx - h.d * 12 - 3, ry - 10, 6, ground - (ry - 10));
+    ctx.fillStyle = "#f4f4f4"; ctx.fillRect(h.bx - 3, ry - 85, 6, 93);
+    ctx.strokeStyle = "#c9501f"; ctx.lineWidth = 2; ctx.strokeRect(h.bx - 3, ry - 85, 6, 93);
+    const bk = hoopBack(h), fr = hoopFront(h);
+    ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1.5;
+    for (let i = 0; i <= 4; i++) {
+      const xt = bk + (fr - bk) * i / 4, xb = bk + (fr - bk) * (0.2 + 0.6 * i / 4);
+      ctx.beginPath(); ctx.moveTo(xt, ry); ctx.lineTo(xb, ry + 32); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(bk + (fr - bk) * 0.07, ry + 14); ctx.lineTo(bk + (fr - bk) * 0.93, ry + 14); ctx.stroke();
+    ctx.strokeStyle = "#e8532a"; ctx.lineWidth = 5; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(bk, ry); ctx.lineTo(fr, ry); ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function drawHoopCues() {
+  shockFx.forEach(f => {
+    ctx.save(); ctx.globalAlpha = 1 - f.t / 14; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(f.x, f.y, 24 + f.t * 4.5, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  });
+  if (scoreWait > 0) return;
+  const pulse = Math.sin(performance.now() / 110) * 2.5;
+  ctx.save(); ctx.textAlign = "center"; ctx.font = "bold 12px Arial";
+  if (holder >= 0) {
+    const h = players[holder];
+    if (!h.charging) {
+      const r = 22 + pulse;
+      ctx.setLineDash([6, 5]); ctx.strokeStyle = "#f2b134"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = "#f2b134"; ctx.fillText("SHOOT", ball.x, ball.y - r - 6);
+    }
+    const near = players.some(q => q.side !== h.side && q.stealCD === 0 && Math.hypot(h.x - q.x, h.y - q.y) <= 90);
+    if (near) {
+      const r = 36 + pulse, safe = h.immune > 0, col = safe ? "#ffffff" : "#e8382a";
+      ctx.setLineDash([4, 5]); ctx.strokeStyle = col; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = col; ctx.fillText(safe ? "SAFE" : "STEAL", ball.x, ball.y + r + 14);
+    }
+  } else if (airborneBall()) {
+    const live = !shotLive || shotAge >= SHOT_SAFE, r = 24 + pulse;
+    if (live) {
+      ctx.setLineDash([6, 4]); ctx.strokeStyle = "#e8382a"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = "#e8382a"; ctx.fillText("STEAL", ball.x, ball.y - r - 6);
+    } else {
+      ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, 24, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, 24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, shotAge / SHOT_SAFE)); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawBasketball() {
+  for (let i = 0; i < ballTrail.length; i++) {
+    const t = ballTrail[i], k = (i + 1) / ballTrail.length;
+    ctx.globalAlpha = 0.45 * k; ctx.fillStyle = "#ff9a3c";
+    ctx.beginPath(); ctx.arc(t.x, t.y, ball.r * (0.3 + 0.6 * k), 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#e07b2a";
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#2a1608"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ball.x - ball.r, ball.y); ctx.lineTo(ball.x + ball.r, ball.y); ctx.moveTo(ball.x, ball.y - ball.r); ctx.lineTo(ball.x, ball.y + ball.r); ctx.stroke();
+  ctx.beginPath(); ctx.arc(ball.x - ball.r * 1.2, ball.y, ball.r * 0.95, -0.9, 0.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(ball.x + ball.r * 1.2, ball.y, ball.r * 0.95, Math.PI - 0.9, Math.PI + 0.9); ctx.stroke();
+}
+
+function drawTouches() {
+  if (sport !== "volleyball" || gameMode !== 2) return;
+  [0, 1].forEach(side => {
+    const n = lastHitSide === side && !serveInProgress ? touches[side] : 0;
+    for (let i = 0; i < 3; i++) {
+      const x = side === 0 ? 24 + i * 18 : WIDTH - 24 - i * 18;
+      ctx.beginPath(); ctx.arc(x, 24, 6, 0, Math.PI * 2);
+      ctx.fillStyle = i < n ? (n >= 3 ? "#e8382a" : "#f2b134") : "rgba(255,255,255,0.35)";
+      ctx.fill(); ctx.strokeStyle = "#1d1d1b"; ctx.lineWidth = 2; ctx.stroke();
+    }
+  });
+  if (notice && performance.now() < notice.until) {
+    ctx.save(); ctx.font = "bold 34px Arial"; ctx.textAlign = "center"; ctx.lineWidth = 5; ctx.strokeStyle = "#1d1d1b";
+    ctx.strokeText(notice.text, WIDTH / 2, 150); ctx.fillStyle = "#ffd166"; ctx.fillText(notice.text, WIDTH / 2, 150); ctx.restore();
+  }
+}
+
+// Mnemonic to help remember this section.
+function drawPaused() {
+  ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillStyle = "#ffd166"; ctx.font = "bold 52px Arial"; ctx.textAlign = "center";
+  ctx.fillText("PAUSED", WIDTH / 2, 230);
+  ctx.fillStyle = "white"; ctx.font = "22px Arial";
+  ctx.fillText("Press Escape to continue", WIDTH / 2, 275);
+}
+
 function drawGameOver() {
   ctx.fillStyle = "rgba(0,0,0,.75)"; ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.fillStyle = "#ffd166"; ctx.font = "bold 48px Arial"; ctx.textAlign = "center";
-  ctx.fillText(score1 > score2 ? "BLUE WINS!" : "RED WINS!", WIDTH / 2, 220);
-  ctx.fillStyle = "white"; ctx.font = "25px Arial";
-  ctx.fillText("Click RESTART GAME to play again", WIDTH / 2, 275);
+  ctx.fillText(score1 > score2 ? "BLUE WINS!" : "RED WINS!", WIDTH / 2, 250);
 }
 
 // Past-paper style question for self-assessment.
@@ -973,8 +1698,10 @@ function draw() {
   players.forEach(drawPlayer);
   drawBall();
   drawCues();
+  drawTouches();
   drawParticles();
   if (gameOver) drawGameOver();
+  if (paused) drawPaused();
 }
 
 const STEP = 1000 / 60;
@@ -985,8 +1712,8 @@ function loop(t = 0) {
   acc += Math.min(t - lastTime, 100);
   lastTime = t;
   while (acc >= STEP) {
-    if (gameStarted && !briefingOpen && !gameOver) {
-      gatherInputs(); botControl(); movePlayers(); updateBall(); updateParticles();
+    if (gameStarted && !briefingOpen && !paused && !gameOver) {
+      matchTicks++; gatherInputs(); botControl(); movePlayers(); if (sport === "basketball") updateBasketball(); else updateBall(); updateParticles();
     }
     for (const key in pressed) delete pressed[key];
     acc -= STEP;
