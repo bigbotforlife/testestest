@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Study Guide</title>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 * { box-sizing: border-box; }
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -28,18 +27,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 .back-button { font-size: 15px; padding: 10px; background: #e3d6b8; }
 .back-button:hover { background: #ebe0c7; }
 #gameArea { display: none; }
-.room-code-wrap { background: #ece3cf; border: 3px solid #1d1d1b; padding: 12px; margin: 12px 0; box-shadow: 4px 4px 0 #1d1d1b; }
-.room-code-label { font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #5c5549; text-transform: uppercase; }
-.room-code { font-family: Impact, "Arial Black", sans-serif; font-size: 38px; letter-spacing: 6px; color: #c9501f; margin: 4px 0; }
-.copy-btn { padding: 6px 14px; font-size: 13px; margin: 4px 0 0; }
-.code-input { width: 100%; padding: 14px; font-family: Impact, "Arial Black", sans-serif; font-size: 30px; letter-spacing: 8px; text-align: center; text-transform: uppercase; border: 3px solid #1d1d1b; border-radius: 3px; background: #fffdf7; color: #1d1d1b; box-shadow: 4px 4px 0 #1d1d1b; margin-bottom: 12px; outline: none; }
-.code-input:focus { background: #ffffff; border-color: #c9501f; }
-.lobby-list { text-align: left; margin: 14px 0; border: 3px solid #1d1d1b; background: #fffdf7; }
-.lobby-slot { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 2px solid #e3d6b8; font-size: 14px; font-weight: bold; }
-.lobby-slot:last-child { border-bottom: none; }
-.slot-badge { display: inline-block; padding: 2px 8px; border: 2px solid #1d1d1b; color: #fff; font-size: 12px; margin-right: 8px; }
-.net-msg { font-size: 14px; font-weight: bold; color: #a3401f; min-height: 20px; margin: 8px 0; }
-.online-banner { display: inline-block; background: #f4ecd8; border: 3px solid #1d1d1b; box-shadow: 4px 4px 0 #1d1d1b; padding: 6px 14px; font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+#briefing { position: fixed; inset: 0; background: rgba(29,29,27,0.88); display: flex; justify-content: center; align-items: center; z-index: 3000; }
+.brief-card { background: #f4ecd8; border: 4px solid #1d1d1b; border-radius: 3px; box-shadow: 10px 10px 0 #c9501f; padding: 22px 26px; width: 94%; max-width: 580px; max-height: 92vh; overflow-y: auto; text-align: left; }
+.brief-card h1 { text-align: center; font-size: 30px; margin: 0; }
+.brief-card h2 { text-align: center; margin: 2px 0 10px; font-size: 16px; color: #c9501f; letter-spacing: 1px; text-transform: uppercase; }
+.brief-card .controls { margin: 6px 0; line-height: 1.55; font-size: 14px; }
+.brief-card ul { margin: 6px 0 12px 18px; padding: 0; }
+.brief-card li { margin-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -59,7 +53,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 <div id="oppStep" style="display:none">
 <p id="oppPrompt">Who are you playing against?</p>
 <button class="menu-button" id="sameKbBtn" onclick="chooseOpponent('local')">Same Keyboard</button>
-<button class="menu-button" onclick="chooseOpponent('online')">Online (Room Code)</button>
 <button class="menu-button" id="soloBotBtn" onclick="chooseOpponent('bot')">Solo (vs Bot)</button>
 <button class="menu-button back-button" onclick="showModeStep()">← BACK</button>
 </div>
@@ -70,43 +63,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 <button class="menu-button" onclick="chooseDifficulty('medium')">Medium</button>
 <button class="menu-button" onclick="chooseDifficulty('hard')">Hard</button>
 <button class="menu-button back-button" onclick="chooseMode(1)">← BACK</button>
-</div>
-
-<div id="onlineStep" style="display:none">
-<p>Play across different laptops!</p>
-<button class="menu-button" onclick="startHosting()">CREATE ROOM</button>
-<button class="menu-button" onclick="openJoinStep()">JOIN ROOM</button>
-<button class="menu-button back-button" onclick="chooseMode(pendingMode)">← BACK</button>
-</div>
-
-<div id="hostLobbyStep" style="display:none">
-<div class="room-code-wrap">
-<div class="room-code-label">Share This Room Code</div>
-<div class="room-code" id="hostRoomCode">....</div>
-<button class="copy-btn" id="copyCodeBtn" onclick="copyRoomCode()">COPY CODE</button>
-</div>
-<div class="lobby-list" id="hostRoster"></div>
-<div class="net-msg" id="hostStatus">Creating room...</div>
-<button class="menu-button" id="hostContinueBtn" onclick="showStep('sportStep')" disabled>CHOOSE SPORT →</button>
-<button class="menu-button back-button" onclick="leaveOnlineToMenu()">← CANCEL ROOM</button>
-</div>
-
-<div id="joinStep" style="display:none">
-<p>Enter the 4-letter room code:</p>
-<input type="text" id="joinCodeInput" class="code-input" maxlength="4" placeholder="ABCD" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter') joinRoom()">
-<button class="menu-button" id="joinSubmitBtn" onclick="joinRoom()">CONNECT</button>
-<div class="net-msg" id="joinStatus"></div>
-<button class="menu-button back-button" onclick="leaveOnlineToMenu('onlineStep')">← BACK</button>
-</div>
-
-<div id="guestLobbyStep" style="display:none">
-<div class="room-code-wrap">
-<div class="room-code-label">Connected To Room</div>
-<div class="room-code" id="guestRoomCode">----</div>
-</div>
-<div class="lobby-list" id="guestRoster"></div>
-<div class="net-msg" id="guestStatus">Waiting for host to pick a sport...</div>
-<button class="menu-button back-button" onclick="leaveOnlineToMenu()">← LEAVE ROOM</button>
 </div>
 
 <div id="sportStep" style="display:none">
@@ -121,12 +77,21 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 
 <div id="gameArea">
 <h1 id="gameTitle">Study Guide</h1>
-<div id="onlineBanner" class="online-banner" style="display:none"></div>
 <div id="score">0 - 0</div>
 <canvas id="game" width="900" height="500"></canvas>
 <button id="restartBtn" onclick="restart()">RESTART GAME</button>
 <button id="menuBtn" onclick="backToMenu()">MAIN MENU</button>
+<button id="helpBtn" onclick="openBriefing()">HOW TO PLAY</button>
 <div class="controls" id="controlsDisplay"></div>
+</div>
+
+<div id="briefing" style="display:none">
+<div class="brief-card">
+<h1>Study Guide</h1>
+<h2 id="briefTitle"></h2>
+<div class="controls" id="briefBody"></div>
+<button class="menu-button" onclick="closeBriefing()">READY</button>
+</div>
 </div>
 
 <script>
@@ -139,15 +104,18 @@ const WIDTH = 900, HEIGHT = 500, ground = 445, netX = 450;
 let netTop = 315;
 
 const SPORTS = {
-  volleyball: { netTop: 235, jump: 17.5, g: 0.25, k: 0,      setV: [4.5, -11.5], serve: [9, -10], setName: "SET",   spikeName: "SPIKE" },
-  badminton:  { netTop: 285, jump: 15,   g: 0.2,  k: 0.0035, setV: [2.6, -7.5],  serve: [7, -9],   setName: "DROP",  spikeName: "SMASH" },
-  tennis:     { netTop: 375, jump: 11,   g: 0.25, k: 0,      setV: [0, 0],       serve: [13, 0],   setName: "SLICE", spikeName: "DRIVE" }
+  volleyball: { netTop: 235, jump: 17.5, g: 0.25, k: 0,      setV: [4.5, -11.5], serve: [9, -10],  setName: "SET",   spikeName: "SPIKE", setReach: 105, hitReach: 115 },
+  badminton:  { netTop: 285, jump: 15,   g: 0.2,  k: 0.0025, setV: [5.2, -10],   serve: [8, -9.5], setName: "LIFT",  spikeName: "SMASH", setReach: 145, hitReach: 160 },
+  tennis:     { netTop: 375, jump: 11,   g: 0.28, k: 0,      setV: [0, 0],       serve: [15, 0],   setName: "SLICE", spikeName: "DRIVE", setReach: 88,  hitReach: 98 }
 };
+// Badminton hit curve: 0 = tap (high, deep clear), 1 = full hold (steep smash)
+const SMASH = { a0: 55, a1: -55, s0: 20, s1: 28 };
 
 let score1 = 0, score2 = 0;
 let gameOver = false, gameStarted = false, gameMode = 1;
 let servingSide = 0, serveHit = false, serveInProgress = true, servePlayerIndex = -1;
 let lastHitSide = -1;
+let hitShield = 0;
 let playerTouchingBall = [];
 
 const keys = {};
@@ -155,17 +123,17 @@ const pressed = {};
 
 // Review the key terms before moving on to the next chapter.
 function normalizeKey(e) {
-  if (e.code.startsWith("Numpad")) return e.code.toLowerCase();
-  return e.key.toLowerCase();
+  if (e.code && e.code.startsWith("Numpad")) return e.code.toLowerCase();
+  return (e.key || "").toLowerCase();
 }
 
 document.addEventListener("keydown", e => {
   if (document.activeElement && document.activeElement.tagName === "INPUT") return;
   const key = normalizeKey(e);
+  if (briefingOpen) { if (key === "enter") { e.preventDefault(); closeBriefing(); } return; }
   if (["arrowup","arrowdown","arrowleft","arrowright"," ","enter","shift"].includes(key) || key.startsWith("numpad")) e.preventDefault();
   if (!keys[key]) {
     pressed[key] = true;
-    if (netMode === "guest") queueGuestPulse(key);
   }
   keys[key] = true;
 });
@@ -185,295 +153,10 @@ function readKeys(p, m) {
   n.jump = edge(m.jump); n.slide = edge(m.slide); n.set = edge(m.set); n.spike = edge(m.spike);
   n.spikeHeld = held(m.spike);
 }
-const HOST_MAP = { left: ["a","arrowleft"], right: ["d","arrowright"], jump: ["w","arrowup"], slide: ["s","arrowdown"], set: ["e","shift"], spike: ["q","enter"] };
 
 // Practice questions - attempt before reading the solution.
 function gatherInputs() {
-  players.forEach((p, i) => {
-    if (p.isBot) return;
-    if (netMode === "host" && i > 0) {
-      const n = p.in, r = remoteInputs[i];
-      if (!r) { Object.assign(n, newInput()); return; }
-      n.left = r.l; n.right = r.r; n.spikeHeld = r.h;
-      n.jump = r.pulse.jump; n.slide = r.pulse.slide; n.set = r.pulse.set; n.spike = r.pulse.spike;
-      r.pulse = { jump: false, slide: false, set: false, spike: false };
-    } else {
-      readKeys(p, p.map);
-    }
-  });
-}
-
-const PEER_PREFIX = "study-guide-yash-";
-let netMode = null;
-let peer = null;
-let roomCode = "";
-let mySlot = 0;
-let hostConns = {};
-let guestConn = null;
-let roster = [];
-let remoteInputs = {};
-let guestPulse = { jump: false, slide: false, set: false, spike: false };
-
-// Highlight the main idea of each section in your notes.
-function generateRoomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
-}
-
-// Revision tip: repeat difficult topics at spaced intervals.
-function slotMeta(mode, slot) {
-  if (mode === 1) {
-    return slot === 0 ? { label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 } : { label: "PLAYER 2 (RED)", color: "#ff4b55", side: 1 };
-  }
-  return [
-    { label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 },
-    { label: "PLAYER 2 (BLUE)", color: "#55b5ff", side: 0 },
-    { label: "PLAYER 3 (RED)", color: "#ff4b55", side: 1 },
-    { label: "PLAYER 4 (RED)", color: "#ff858a", side: 1 }
-  ][slot];
-}
-
-// Glossary: definitions to memorise for the test.
-function initRoster(mode) {
-  roster = [];
-  for (let i = 0; i < (mode === 1 ? 2 : 4); i++) roster.push({ slot: i, occupied: i === 0, isHost: i === 0 });
-}
-
-// Study schedule: break the reading into short sessions.
-function renderRoster(containerId) {
-  document.getElementById(containerId).innerHTML = roster.map(r => {
-    const m = slotMeta(pendingMode, r.slot);
-    const tag = r.slot === mySlot ? (r.isHost ? "You (Host)" : "You") : (r.occupied ? (r.isHost ? "Host" : "Connected") : "Waiting...");
-    return `<div class="lobby-slot"><span><span class="slot-badge" style="background:${m.color}">${m.label}</span></span><span style="color:${r.occupied ? "#1d1d1b" : "#8c8270"}">${tag}</span></div>`;
-  }).join("");
-}
-
-// Mnemonic to help remember this section.
-function cleanupNetwork() {
-  Object.values(hostConns).forEach(c => { try { c.close(); } catch (_) {} });
-  hostConns = {};
-  if (guestConn) { try { guestConn.close(); } catch (_) {} guestConn = null; }
-  if (peer) { try { peer.destroy(); } catch (_) {} peer = null; }
-  netMode = null; roomCode = ""; mySlot = 0; remoteInputs = {};
-  guestPulse = { jump: false, slide: false, set: false, spike: false };
-}
-
-// Past-paper style question for self-assessment.
-function leaveOnlineToMenu(targetStep = "modeStep") { cleanupNetwork(); showStep(targetStep); }
-
-// Cross-reference with the textbook chapter.
-function copyRoomCode() {
-  if (!roomCode) return;
-  navigator.clipboard.writeText(roomCode).then(() => {
-    const btn = document.getElementById("copyCodeBtn");
-    btn.textContent = "COPIED!";
-    setTimeout(() => { btn.textContent = "COPY CODE"; }, 1500);
-  });
-}
-
-// Group study: compare answers with classmates.
-function canSend(c) { return c.open && (!c.dataChannel || c.dataChannel.bufferedAmount < 65536); }
-
-// Review the key terms before moving on to the next chapter.
-function startHosting() {
-  if (typeof Peer === "undefined") { alert("PeerJS failed to load. Check your internet connection and reload."); return; }
-  cleanupNetwork();
-  netMode = "host"; mySlot = 0;
-  initRoster(pendingMode);
-  showStep("hostLobbyStep");
-  document.getElementById("hostRoomCode").textContent = "....";
-  document.getElementById("hostStatus").textContent = "Creating room...";
-  document.getElementById("hostContinueBtn").disabled = true;
-  renderRoster("hostRoster");
-
-  function tryCreatePeer() {
-    const candidate = generateRoomCode();
-    const p = new Peer(PEER_PREFIX + candidate);
-
-    p.on("open", () => {
-      peer = p; roomCode = candidate;
-      document.getElementById("hostRoomCode").textContent = roomCode;
-      document.getElementById("hostStatus").textContent = "Waiting for players to join...";
-    });
-    p.on("error", err => {
-      if (err.type === "unavailable-id") { p.destroy(); tryCreatePeer(); }
-      else document.getElementById("hostStatus").textContent = "Connection error: " + err.type;
-    });
-    p.on("connection", conn => {
-      conn.on("open", () => {
-        const order = pendingMode === 1 ? [0, 1] : [0, 2, 1, 3];
-        const openSlot = order.find(s => !roster[s].occupied);
-        if (openSlot === undefined || gameStarted) {
-          conn.send({ type: "full" });
-          setTimeout(() => conn.close(), 200);
-          return;
-        }
-        hostConns[openSlot] = conn;
-        roster[openSlot].occupied = true;
-        remoteInputs[openSlot] = { l: false, r: false, h: false, pulse: { jump: false, slide: false, set: false, spike: false } };
-        conn.send({ type: "welcome", slot: openSlot, mode: pendingMode, code: roomCode, roster });
-        broadcastLobby();
-        updateHostLobbyUI();
-      });
-      conn.on("data", data => {
-        const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
-        const r = remoteInputs[slot];
-        if (isNaN(slot) || !data || !r || data.type !== "input") return;
-        r.l = !!data.l; r.r = !!data.r; r.h = !!data.h;
-        if (data.pulse) for (const k of ["jump", "slide", "set", "spike"]) if (data.pulse[k]) r.pulse[k] = true;
-      });
-      const drop = () => {
-        const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
-        if (isNaN(slot)) return;
-        delete hostConns[slot]; delete remoteInputs[slot];
-        if (roster[slot]) roster[slot].occupied = false;
-        broadcastLobby(); updateHostLobbyUI();
-        if (gameStarted) document.getElementById("onlineBanner").textContent = `ROOM ${roomCode} · PLAYER ${slot + 1} DISCONNECTED`;
-      };
-      conn.on("close", drop);
-      conn.on("error", drop);
-    });
-  }
-  tryCreatePeer();
-}
-
-// Flashcards: quiz yourself, then check the answer.
-function broadcastLobby() {
-  Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "lobby", mode: pendingMode, code: roomCode, roster }); });
-}
-
-// Summary of this topic for exam revision.
-function updateHostLobbyUI() {
-  renderRoster("hostRoster");
-  const n = roster.filter(r => r.occupied).length;
-  document.getElementById("hostContinueBtn").disabled = n < 2;
-  document.getElementById("hostStatus").textContent = n >= 2 ? `${n}/${roster.length} players ready!` : "Waiting for at least 1 opponent to join...";
-}
-
-// Practice questions - attempt before reading the solution.
-function openJoinStep() {
-  cleanupNetwork();
-  document.getElementById("joinCodeInput").value = "";
-  document.getElementById("joinStatus").textContent = "";
-  document.getElementById("joinSubmitBtn").disabled = false;
-  showStep("joinStep");
-  setTimeout(() => document.getElementById("joinCodeInput").focus(), 50);
-}
-
-// Highlight the main idea of each section in your notes.
-function joinRoom() {
-  const raw = document.getElementById("joinCodeInput").value.trim().toUpperCase();
-  const statusEl = document.getElementById("joinStatus");
-  if (raw.length !== 4) { statusEl.textContent = "Please enter a 4-letter room code."; return; }
-  if (typeof Peer === "undefined") { statusEl.textContent = "PeerJS failed to load. Check internet connection."; return; }
-
-  cleanupNetwork();
-  netMode = "guest"; roomCode = raw;
-  document.getElementById("joinSubmitBtn").disabled = true;
-  statusEl.textContent = `Connecting to room ${raw}...`;
-
-  const p = new Peer();
-  peer = p;
-  let welcomed = false;
-  const connectTimeout = setTimeout(() => {
-    if (!welcomed) {
-      statusEl.textContent = "Could not reach room. Check code and try again.";
-      document.getElementById("joinSubmitBtn").disabled = false;
-      cleanupNetwork();
-    }
-  }, 9000);
-
-  p.on("open", () => {
-    const conn = p.connect(PEER_PREFIX + raw, { reliable: true });
-    guestConn = conn;
-    conn.on("data", data => {
-      if (!data) return;
-      if (data.type === "full") {
-        clearTimeout(connectTimeout); cleanupNetwork(); showStep("joinStep");
-        statusEl.textContent = "Room is full or match already started.";
-        document.getElementById("joinSubmitBtn").disabled = false;
-      } else if (data.type === "welcome") {
-        welcomed = true; clearTimeout(connectTimeout);
-        mySlot = data.slot; pendingMode = data.mode; roster = data.roster;
-        document.getElementById("guestRoomCode").textContent = data.code;
-        renderRoster("guestRoster");
-        showStep("guestLobbyStep");
-      } else if (data.type === "lobby") {
-        pendingMode = data.mode; roster = data.roster; renderRoster("guestRoster");
-      } else if (data.type === "start") {
-        startGuestGame(data.mode, data.sport);
-      } else if (data.type === "restart") {
-        score1 = 0; score2 = 0; gameOver = false; particles = []; updateScore();
-      } else if (data.type === "state") {
-        applyNetworkState(data);
-      }
-    });
-    conn.on("close", () => {
-      clearTimeout(connectTimeout);
-      if (gameStarted) { alert("Host disconnected from the room."); backToMenu(); }
-      else { cleanupNetwork(); showStep("joinStep"); statusEl.textContent = "Disconnected from host."; }
-    });
-  });
-  p.on("error", err => {
-    clearTimeout(connectTimeout);
-    document.getElementById("joinSubmitBtn").disabled = false;
-    statusEl.textContent = err.type === "peer-unavailable" ? "Room not found. Double-check the 4-letter code." : "Network error: " + err.type;
-    cleanupNetwork();
-  });
-}
-
-// Revision tip: repeat difficult topics at spaced intervals.
-function queueGuestPulse(key) {
-  if (key === "w" || key === "arrowup") guestPulse.jump = true;
-  if (key === "s" || key === "arrowdown") guestPulse.slide = true;
-  if (key === "e" || key === "shift") guestPulse.set = true;
-  if (key === "q" || key === "enter") guestPulse.spike = true;
-  sendGuestInput();
-}
-
-// Glossary: definitions to memorise for the test.
-function sendGuestInput() {
-  if (netMode !== "guest" || !guestConn || !guestConn.open || !gameStarted) return;
-  guestConn.send({
-    type: "input",
-    l: !!(keys["a"] || keys["arrowleft"]),
-    r: !!(keys["d"] || keys["arrowright"]),
-    h: !!(keys["q"] || keys["enter"]),
-    pulse: guestPulse
-  });
-  guestPulse = { jump: false, slide: false, set: false, spike: false };
-}
-
-// Study schedule: break the reading into short sessions.
-function broadcastGameState() {
-  if (netMode !== "host" || !gameStarted) return;
-  const conns = Object.values(hostConns).filter(canSend);
-  if (!conns.length) return;
-  const r1 = n => Math.round(n * 10) / 10;
-  const packet = {
-    type: "state", s1: score1, s2: score2, go: gameOver, sv: serveInProgress ? 1 : 0,
-    p: players.map(pl => ({ x: r1(pl.x), y: r1(pl.y), vx: r1(pl.vx), vy: r1(pl.vy), st: pl.slideTimer, ef: pl.effect, et: pl.effectTimer, ch: r1(pl.charge), cg: pl.charging ? 1 : 0 })),
-    b: { x: r1(ball.x), y: r1(ball.y), vx: r1(ball.vx), vy: r1(ball.vy), sl: ball.slice ? 1 : 0, bn: ball.bnc || 0 },
-    pt: particles.slice(0, 30).map(pt => ({ x: r1(pt.x), y: r1(pt.y), l: pt.life, c: pt.color }))
-  };
-  conns.forEach(c => c.send(packet));
-}
-
-// Mnemonic to help remember this section.
-function applyNetworkState(d) {
-  if (score1 !== d.s1 || score2 !== d.s2) { score1 = d.s1; score2 = d.s2; updateScore(); }
-  gameOver = d.go; serveInProgress = !!d.sv;
-  if (d.p && players.length === d.p.length) {
-    d.p.forEach((s, i) => {
-      const p = players[i];
-      p.x = s.x; p.y = s.y; p.vx = s.vx; p.vy = s.vy;
-      p.slideTimer = s.st; p.effect = s.ef; p.effectTimer = s.et; p.charge = s.ch; p.charging = !!s.cg;
-    });
-  }
-  if (d.b) { ball.x = d.b.x; ball.y = d.b.y; ball.vx = d.b.vx; ball.vy = d.b.vy; ball.slice = !!d.b.sl; ball.bnc = d.b.bn; }
-  if (d.pt) particles = d.pt.map(pt => ({ x: pt.x, y: pt.y, vx: 0, vy: 0, life: pt.l, color: pt.c }));
+  players.forEach(p => { if (!p.isBot) readKeys(p, p.map); });
 }
 
 // Past-paper style question for self-assessment.
@@ -495,7 +178,6 @@ function createPlayers() {
   if (gameMode === 2) players.push(createPlayer(300, 0, "#55b5ff", m("j","l","i","k","o","u")));
   players.push(createPlayer(gameMode === 1 ? 720 : 600, 1, "#ff4b55", m("arrowleft","arrowright","arrowup","arrowdown","shift","enter")));
   if (gameMode === 2) players.push(createPlayer(750, 1, "#ff858a", m("numpad1","numpad3","numpad5","numpad2","numpad6","numpad4")));
-  if (netMode === "host") players[0].map = HOST_MAP;
   playerTouchingBall = players.map(() => false);
 }
 
@@ -578,7 +260,7 @@ requestAnimationFrame(menuBgFrame);
 
 // Summary of this topic for exam revision.
 function showStep(id) {
-  ["modeStep","oppStep","diffStep","onlineStep","hostLobbyStep","joinStep","guestLobbyStep","sportStep"].forEach(s => {
+  ["modeStep","oppStep","diffStep","sportStep"].forEach(s => {
     document.getElementById(s).style.display = s === id ? "block" : "none";
   });
 }
@@ -595,22 +277,19 @@ function chooseMode(m) {
 function chooseOpponent(type) {
   pendingBot = null;
   if (type === "local") showStep("sportStep");
-  else if (type === "online") showStep("onlineStep");
   else if (type === "bot") showStep("diffStep");
 }
 // Revision tip: repeat difficult topics at spaced intervals.
 function chooseDifficulty(level) { pendingBot = level; showStep("sportStep"); }
 // Glossary: definitions to memorise for the test.
-function showModeStep() { cleanupNetwork(); pendingBot = null; showStep("modeStep"); }
+function showModeStep() { pendingBot = null; showStep("modeStep"); }
 // Study schedule: break the reading into short sessions.
 function backFromSport() {
-  if (netMode === "host") showStep("hostLobbyStep");
-  else if (pendingBot) showStep("diffStep");
+  if (pendingBot) showStep("diffStep");
   else showStep("oppStep");
 }
 // Mnemonic to help remember this section.
 function hostOrLocalStart(s) {
-  if (netMode === "host") Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "start", mode: pendingMode, sport: s }); });
   startGame(pendingMode, s);
 }
 
@@ -632,59 +311,74 @@ function setupGameScreen(mode, s) {
 // Cross-reference with the textbook chapter.
 function startGame(mode, s) {
   setupGameScreen(mode, s);
-  bot = (mode === 1 && pendingBot && !netMode)
+  bot = (mode === 1 && pendingBot)
     ? { level: pendingBot, timer: 0, noise: 0, pred: { x: 720, t: 99 }, wait: BOT_LEVELS[pendingBot].serveDelay, chargeTarget: null, chargeTime: 0 }
     : null;
   if (bot) players[1].isBot = true;
   gameStarted = true;
   restartBall(Math.random() < 0.5 ? 0 : 1);
+  updateControls();
+  openBriefing();
 }
 
 // Group study: compare answers with classmates.
-function startGuestGame(mode, s) {
-  bot = null;
-  setupGameScreen(mode, s);
-  gameStarted = true;
-}
 
 // Review the key terms before moving on to the next chapter.
-function updateControls() {
-  const display = document.getElementById("controlsDisplay");
-  const banner = document.getElementById("onlineBanner");
-  const restartBtn = document.getElementById("restartBtn");
-  const menuBtn = document.getElementById("menuBtn");
+function controlsHTML() {
   const S = SPORTS[sport];
-  const spk = sport === "badminton" ? "Clear/Smash (hold to charge)" : S.spikeName;
+  const spk = sport === "badminton" ? "Clear/Smash (hold)" : S.spikeName;
   const ab = (sl, se, sk) => `<span class="abilities">Slide: ${sl} | ${S.setName}: ${se} | ${spk}: ${sk}</span>`;
-  const tip = sport === "badminton" ? "<br>Tap " + spk.split(" ")[0] + " = clear. Hold = charge. Under 50% is a clear, 50%+ is a smash (smash needs a jump)."
-    : sport === "tennis" ? "<br>Let the ball bounce once on your side (or hit it before). Two bounces = point for the other side."
-    : "";
-
-  if (netMode) {
-    const m = slotMeta(gameMode, mySlot);
-    banner.style.display = "inline-block";
-    banner.innerHTML = `ROOM: <span style="color:#c9501f">${roomCode}</span> · YOU ARE <span style="color:${m.color}">${m.label}</span>`;
-    restartBtn.style.display = netMode === "host" ? "inline-block" : "none";
-    menuBtn.textContent = "LEAVE ROOM";
-    display.innerHTML = `<b style="color:${m.color}">YOUR CONTROLS (${m.label})</b><br>Move: A / D (or ← / →) | Jump: W (or ↑)<br>${ab("S / ↓", "E / SHIFT", "Q / ENTER")}${tip}<br><br>First ${gameMode === 1 ? "player" : "team"} to 10 points wins!`;
-    return;
-  }
-
-  banner.style.display = "none";
-  restartBtn.style.display = "inline-block";
-  menuBtn.textContent = "MAIN MENU";
-
   if (gameMode === 1) {
-    display.innerHTML = `<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>Move: A / D | Jump: W<br>${ab("S", "E", "Q")}<br><br>
-${bot ? '<b style="color:#ff4b55">BOT (RED) · ' + bot.level.toUpperCase() + '</b>' : '<b style="color:#ff4b55">PLAYER 2 (RED)</b><br>Move: ← / → | Jump: ↑<br>' + ab("↓", "SHIFT", "ENTER")}${tip}<br><br>First player to 10 points wins!`;
-  } else {
-    display.innerHTML = `<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>Move: A / D | Jump: W<br>${ab("S", "E", "Q")}<br><br>
+    return `<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>Move: A / D | Jump: W<br>${ab("S", "E", "Q")}<br><br>
+${bot ? '<b style="color:#ff4b55">BOT (RED) · ' + bot.level.toUpperCase() + '</b>' : '<b style="color:#ff4b55">PLAYER 2 (RED)</b><br>Move: ← / → | Jump: ↑<br>' + ab("↓", "SHIFT", "ENTER")}`;
+  }
+  return `<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>Move: A / D | Jump: W<br>${ab("S", "E", "Q")}<br><br>
 <b style="color:#55b5ff">PLAYER 2 (BLUE)</b><br>Move: J / L | Jump: I<br>${ab("K", "O", "U")}<br><br>
 <b style="color:#ff4b55">PLAYER 3 (RED)</b><br>Move: ← / → | Jump: ↑<br>${ab("↓", "SHIFT", "ENTER")}<br><br>
-<b style="color:#ff858a">PLAYER 4 (RED)</b><br>Move: NUMPAD 1 / 3 | Jump: NUMPAD 5<br>${ab("NUMPAD 2", "NUMPAD 6", "NUMPAD 4")}${tip}<br><br>First team to 10 points wins!`;
-  }
+<b style="color:#ff858a">PLAYER 4 (RED)</b><br>Move: NUMPAD 1 / 3 | Jump: NUMPAD 5<br>${ab("NUMPAD 2", "NUMPAD 6", "NUMPAD 4")}`;
 }
 
+function updateControls() {
+  document.getElementById("controlsDisplay").innerHTML = controlsHTML() + `<br><br>First ${gameMode === 1 ? "player" : "team"} to 10 points wins (win by 2).`;
+}
+
+const BRIEF = {
+  volleyball: { name: "Volleyball", tips: [
+    "Keep the ball off your side of the net. First to 10 points wins, and you must win by 2.",
+    "<b>Serve:</b> the server jumps into the ball to launch it. The other side must bump it with their body first (no set or spike on the receive).",
+    "<b>SET</b> sends a high lob. <b>SPIKE</b> needs a jump and slams the ball down, best from near the net with the ball above the net line.",
+    "A dashed ring appears on the ball when you can hit it: <b>gold = set</b>, <b>red = spike</b>. Your arms go up for a set and swing for a spike.",
+    "The net is tall and jumps are high, so time your jump." ] },
+  badminton: { name: "Badminton", tips: [
+    "Keep the birdie off your side. First to 10 points wins (win by 2).",
+    "<b>Tap the smash button</b> for a high, deep <b>CLEAR</b>. <b>Hold</b> it and the bar fills fast, bending the angle from clear, to flat, to a steep downward smash.",
+    "Hold about half for a flat <b>back-row</b> attack from deep. Hold fully near the net for a steep <b>SMASH</b>. The white mark on the bar is 50%.",
+    "<b>LIFT</b> is a quick, lofted return. You can hit from a long way off, so you don't have to be perfectly under the birdie.",
+    "The birdie is fast off the racquet and slows quickly in the air. A dashed ring shows when it is in reach.",
+    "<b>Serve:</b> the server jumps into the birdie. The receiver can hit it right away." ] },
+  tennis: { name: "Tennis", tips: [
+    "First to 10 points wins (win by 2). The court is flat and fast, and the net is low.",
+    "<b>Bounce rule:</b> after a hit, the ball must bounce once on the far side. The receiver hits it before or after that bounce. A second bounce loses the point.",
+    "You also lose the point if your ball lands on your own side, hits the net and drops back, or bounces outside the white baselines.",
+    "<b>SLICE</b> is a low floating shot that stays low after the bounce. <b>DRIVE</b> is a hard flat shot. Drive while airborne above the net for a <b>SMASH</b>.",
+    "Reach is short and shots have a little natural variation, so get in position early.",
+    "<b>Serve:</b> jump into the ball. A white ring shows once it has bounced, meaning you must hit it now." ] }
+};
+
+let briefingOpen = false;
+function openBriefing() {
+  const B = BRIEF[sport];
+  const mode = bot ? "vs Bot (" + bot.level + ")" : (gameMode === 2 ? "2 vs 2" : "1 vs 1");
+  document.getElementById("briefTitle").textContent = B.name + " · " + mode;
+  document.getElementById("briefBody").innerHTML = "<b>CONTROLS</b><br>" + controlsHTML() + "<br><br><b>HOW IT WORKS</b><ul><li>" + B.tips.join("</li><li>") + "</li></ul>";
+  document.getElementById("briefing").style.display = "flex";
+  briefingOpen = true;
+  for (const k in keys) keys[k] = false;
+}
+function hideBriefing() { document.getElementById("briefing").style.display = "none"; briefingOpen = false; }
+function closeBriefing() { hideBriefing(); for (const k in keys) keys[k] = false; for (const k in pressed) delete pressed[k]; }
+
+// Review the key terms before moving on to the next chapter.
 let bot = null;
 let pendingBot = null;
 
@@ -748,11 +442,11 @@ function botControl() {
       const live = ball.x >= netX && p.slideTimer === 0 && (!serveInProgress || receivingOk);
       const d = Math.hypot(ball.x - p.x, ball.y - (p.y - 10));
       const air = p.y < ground - 62;
-      const canSet = d < L.setRange && ball.vy > -3 && Math.random() < L.setProb;
+      const canSet = d < L.setRange * SPORTS[sport].setReach / 105 && ball.vy > -3 && Math.random() < L.setProb;
 
       if (bot.chargeTarget !== null) {
         bot.chargeTime++;
-        const zone = air && d < 112 && ball.y < netTop - 10;
+        const zone = air && d < SPORTS[sport].hitReach - 3 && ball.y < netTop - 10;
         if (live && zone && p.charge >= bot.chargeTarget) bot.chargeTarget = null;
         else if (bot.chargeTime > 70 || (grounded && bot.chargeTime > 12)) bot.chargeTarget = null;
       } else if (live) {
@@ -767,7 +461,7 @@ function botControl() {
             if (Math.random() < 0.5) n.set = true; else n.spike = true;
           }
         } else {
-          const zone = air && d < 112 && ball.x < 570 && ball.y < netTop + 25;
+          const zone = air && d < SPORTS[sport].hitReach - 3 && ball.x < 570 && ball.y < netTop + 25;
           if (zone) { if (Math.random() < L.spike) n.spike = true; }
           else if (canSet) n.set = true;
           if (grounded && L.spike > 0 && ball.x > 480 && ball.x < 570 && ball.y > 110 && ball.y < 260 && ball.vy > -1 &&
@@ -785,8 +479,8 @@ function botControl() {
 
 // Practice questions - attempt before reading the solution.
 function backToMenu() {
-  cleanupNetwork();
   gameStarted = false;
+  hideBriefing();
   document.getElementById("menu").style.display = "flex";
   showModeStep();
   document.getElementById("gameArea").style.display = "none";
@@ -796,14 +490,13 @@ function backToMenu() {
 
 // Highlight the main idea of each section in your notes.
 function restartBall(scoringSide) {
-  servingSide = scoringSide; serveHit = false; serveInProgress = true; servePlayerIndex = -1; lastHitSide = -1;
+  servingSide = scoringSide; serveHit = false; serveInProgress = true; servePlayerIndex = -1; lastHitSide = -1; hitShield = 0;
   playerTouchingBall = players.map(() => false);
-  ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: 15, bnc: 0, slice: false };
+  ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: sport === "badminton" ? 19 : 15, bnc: 0, slice: false };
 }
 
 // Revision tip: repeat difficult topics at spaced intervals.
 function restart() {
-  if (netMode === "guest") return;
   score1 = 0; score2 = 0; gameOver = false; particles = [];
   players.forEach((p, i) => {
     p.x = gameMode === 1 ? (i === 0 ? 180 : 720) : [150, 300, 600, 750][i];
@@ -813,7 +506,6 @@ function restart() {
   });
   restartBall(Math.random() < 0.5 ? 0 : 1);
   updateScore();
-  if (netMode === "host") Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "restart" }); });
 }
 
 // Glossary: definitions to memorise for the test.
@@ -849,14 +541,17 @@ function canHit(p) {
 // Flashcards: quiz yourself, then check the answer.
 function registerHit(p) {
   lastHitSide = p.side; ball.bnc = 0; ball.slice = false;
+  hitShield = 10;
   if (serveInProgress && serveHit && p.side !== servingSide) serveInProgress = false;
 }
 
 // Summary of this topic for exam revision.
-function clearNetVy(speed, base, margin, halfG) {
+function tennisJitter() { return (Math.random() - 0.5) * 1.8; }
+
+function clearNetVy(speed, base, margin, halfG, cap = 9.5) {
   const t = Math.abs(netX - ball.x) / speed || 1;
   const need = (netTop - ball.r - margin - ball.y - halfG * t * t) / t;
-  return Math.min(base, Math.max(need, -9.5));
+  return Math.min(base, Math.max(need, -cap));
 }
 
 // Practice questions - attempt before reading the solution.
@@ -873,13 +568,13 @@ function slide(p) {
 
 // Highlight the main idea of each section in your notes.
 function setBall(p) {
-  if (p.setCooldown > 0 || !canHit(p) || ballDistance(p) > 105) return;
-  p.setCooldown = 35;
+  if (p.setCooldown > 0 || !canHit(p) || ballDistance(p) > SPORTS[sport].setReach) return;
+  p.setCooldown = sport === "tennis" ? 50 : 35;
   const dir = p.side === 0 ? 1 : -1, S = SPORTS[sport];
   registerHit(p);
   if (sport === "tennis") {
-    const vx = 9.5;
-    ball.vy = clearNetVy(vx, -1, 12, 0.07);
+    const vx = 10.5;
+    ball.vy = clearNetVy(vx, -1, 4, 0.077) + tennisJitter();
     ball.vx = dir * vx + p.vx * 0.15;
     ball.slice = true;
   } else {
@@ -892,26 +587,26 @@ function setBall(p) {
 
 // Revision tip: repeat difficult topics at spaced intervals.
 function spikeBall(p, power = 1) {
-  if (p.spikeCooldown > 0 || !canHit(p) || ballDistance(p) > 115) return;
+  if (p.spikeCooldown > 0 || !canHit(p) || ballDistance(p) > SPORTS[sport].hitReach) return;
   const air = p.y < ground - 62, dir = p.side === 0 ? 1 : -1;
   let vx, vy, label;
   if (sport === "volleyball") {
     if (!air) return;
     vx = dir * 9; vy = clearNetVy(9, 11, 8, 0.125); label = "SPIKE";
   } else if (sport === "badminton") {
-    if (power >= 0.5 && !air) return;
 
-    const deg = power < 0.5 ? 60 - 52 * (power / 0.5) : 8 - 66 * ((power - 0.5) / 0.5);
+    const deg = SMASH.a0 + (SMASH.a1 - SMASH.a0) * power;
     const a = deg * Math.PI / 180;
-    const sp = power < 0.5 ? 15 + 2.5 * (power / 0.5) : 17.5 + 9.5 * ((power - 0.5) / 0.5);
+    const sp = SMASH.s0 + (SMASH.s1 - SMASH.s0) * power;
     vx = dir * Math.cos(a) * sp; vy = -Math.sin(a) * sp;
+    if (power < 0.7) vy = clearNetVy(Math.abs(vx), vy, 16, 0.115, 14);   // flat and mid holds clear the net; full smashes do not
     label = power < 0.5 ? "CLEAR" : "SMASH " + Math.round(power * 100) + "%";
   } else {
-    if (air && ball.y < netTop - 30) { registerHit(p); vx = dir * 11; vy = clearNetVy(11, 9, 6, 0.125); label = "SMASH"; }
-    else { registerHit(p); vx = dir * 14; vy = clearNetVy(14, -1, 10, 0.125); label = "DRIVE"; }
+    if (air && ball.y < netTop - 30) { registerHit(p); vx = dir * 12; vy = clearNetVy(12, 9, 4, 0.14) + tennisJitter(); label = "SMASH"; }
+    else { registerHit(p); vx = dir * 16; vy = clearNetVy(16, -1, 4, 0.14) + tennisJitter(); label = "DRIVE"; }
   }
   if (sport !== "tennis") registerHit(p);
-  p.spikeCooldown = 50;
+  p.spikeCooldown = sport === "tennis" ? 60 : (sport === "badminton" ? 30 : 50);
   ball.vx = vx + p.vx * 0.2; ball.vy = vy;
   ball.x += dir * 12;
   abilityEffect(p, label);
@@ -935,7 +630,7 @@ function movePlayers() {
 
       if (n.spike && p.spikeCooldown === 0) { p.charging = true; p.charge = 0; }
       if (p.charging) {
-        if (n.spikeHeld) p.charge = Math.min(1, p.charge + 1 / 40);
+        if (n.spikeHeld) p.charge = Math.min(1, p.charge + 1 / 16);
         else { p.charging = false; spikeBall(p, p.charge); p.charge = 0; }
       }
     } else if (n.spike) spikeBall(p, 1);
@@ -964,7 +659,9 @@ function collideBall() {
     const dist = Math.hypot(dx, dy);
     const minDist = ball.r + (p.slideTimer > 0 ? 32 : p.radius);
 
-    if (!(dist < minDist && dist > 0)) { playerTouchingBall[i] = false; continue; }
+    const touching = dist < minDist && dist > 0;
+    if (hitShield > 0 && p.side === lastHitSide) { playerTouchingBall[i] = touching; continue; }
+    if (!touching) { playerTouchingBall[i] = false; continue; }
     if (playerTouchingBall[i]) continue;
     playerTouchingBall[i] = true;
 
@@ -975,8 +672,8 @@ function collideBall() {
 
       if (!serveHit && p.side === servingSide) {
         serveHit = true; servePlayerIndex = i;
-        lastHitSide = p.side; ball.bnc = 0;
-        if (sport === "tennis") { ball.vx = dir * S.serve[0]; ball.vy = clearNetVy(S.serve[0], 2, 12, 0.125); }
+        lastHitSide = p.side; ball.bnc = 0; hitShield = 10;
+        if (sport === "tennis") { ball.vx = dir * S.serve[0]; ball.vy = clearNetVy(S.serve[0], 2, 6, 0.14); }
         else { ball.vx = dir * S.serve[0]; ball.vy = S.serve[1]; }
         const nx = dx / dist, ny = dy / dist;
         ball.x = p.x + nx * minDist; ball.y = p.y - 10 + ny * minDist;
@@ -994,11 +691,12 @@ function collideBall() {
     if (sport === "tennis") {
 
       ball.vx = dir * 8 + p.vx * 0.3;
-      ball.vy = clearNetVy(8, -3, 10, 0.125);
+      ball.vy = clearNetVy(8, -3, 6, 0.14) + tennisJitter();
     } else {
       const speed = Math.hypot(ball.vx, ball.vy);
-      ball.vx = nx * Math.max(speed, 6) + p.vx * 0.3;
-      ball.vy = ny * Math.max(speed, 6) - 1;
+      const floor = sport === "badminton" ? 12 : 6;
+      ball.vx = nx * Math.max(speed, floor) + p.vx * 0.3;
+      ball.vy = ny * Math.max(speed, floor) - 1;
     }
     createParticles(ball.x, ball.y, p.color, 5);
   }
@@ -1009,13 +707,13 @@ function groundContact() {
   const side = ball.x < netX ? 0 : 1;
   if (sport !== "tennis" || lastHitSide < 0) { awardPoint(1 - side); return; }
   if (ball.bnc === 0) {
-    const out = ball.x < 25 || ball.x > WIDTH - 25;
+    const out = ball.x < 60 || ball.x > WIDTH - 60;
     if (side === lastHitSide || out) { awardPoint(1 - lastHitSide); return; }
     ball.bnc = 1;
     const sl = ball.slice;
     ball.y = ground - ball.r;
-    ball.vy = -Math.max(Math.abs(ball.vy) * (sl ? 0.45 : 0.78), sl ? 3 : 5.5);
-    ball.vx *= sl ? 1.03 : 0.93;
+    ball.vy = -Math.max(Math.abs(ball.vy) * (sl ? 0.4 : 0.7), sl ? 2.5 : 4.5);
+    ball.vx *= sl ? 1.05 : 0.97;
     createParticles(ball.x, ground, "#ffffff", 7);
   } else {
     awardPoint(lastHitSide);
@@ -1025,6 +723,7 @@ function groundContact() {
 // Past-paper style question for self-assessment.
 function updateBall() {
   if (ball.vx === 0 && ball.vy === 0) { collideBall(); return; }
+  if (hitShield > 0) hitShield--;
   const S = SPORTS[sport];
 
   ball.vy += S.g * (ball.slice ? 0.55 : 1);
@@ -1074,6 +773,7 @@ function drawCourt() {
   ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
   for (let y = netTop + 8; y < ground; y += 12) { ctx.beginPath(); ctx.moveTo(netX - 17, y); ctx.lineTo(netX + 17, y); ctx.stroke(); }
   ctx.fillStyle = "#ffffff"; ctx.fillRect(netX - 17, netTop, 34, 5);
+  if (sport === "tennis") { ctx.fillRect(58, ground, 4, 55); ctx.fillRect(WIDTH - 62, ground, 4, 55); }
 }
 
 // Flashcards: quiz yourself, then check the answer.
@@ -1216,8 +916,8 @@ function drawCues() {
   for (const p of players) {
     if (!canHit(p)) continue;
     const d = ballDistance(p);
-    if (d < 105) canSet = true;
-    if (d < 115 && (sport === "tennis" || p.y < ground - 62)) canSpike = true;
+    if (d < S.setReach) canSet = true;
+    if (d < S.hitReach && (sport !== "volleyball" || p.y < ground - 62)) canSpike = true;
   }
   if (canSet || canSpike) {
     const col = canSpike ? "#e8382a" : "#f2b134";
@@ -1263,7 +963,7 @@ function drawGameOver() {
   ctx.fillStyle = "#ffd166"; ctx.font = "bold 48px Arial"; ctx.textAlign = "center";
   ctx.fillText(score1 > score2 ? "BLUE WINS!" : "RED WINS!", WIDTH / 2, 220);
   ctx.fillStyle = "white"; ctx.font = "25px Arial";
-  ctx.fillText(netMode === "guest" ? "Waiting for host to restart..." : "Click RESTART GAME to play again", WIDTH / 2, 275);
+  ctx.fillText("Click RESTART GAME to play again", WIDTH / 2, 275);
 }
 
 // Past-paper style question for self-assessment.
@@ -1285,18 +985,8 @@ function loop(t = 0) {
   acc += Math.min(t - lastTime, 100);
   lastTime = t;
   while (acc >= STEP) {
-    if (gameStarted) {
-      if (netMode === "guest") sendGuestInput();
-      else {
-        if (!gameOver) {
-          gatherInputs();
-          botControl();
-          movePlayers();
-          updateBall();
-          updateParticles();
-        }
-        broadcastGameState();
-      }
+    if (gameStarted && !briefingOpen && !gameOver) {
+      gatherInputs(); botControl(); movePlayers(); updateBall(); updateParticles();
     }
     for (const key in pressed) delete pressed[key];
     acc -= STEP;
