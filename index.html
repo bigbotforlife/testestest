@@ -1,0 +1,965 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Volleyball Duel</title>
+<style>
+* { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background-color: #ece3cf; background-image: radial-gradient(#d6c9aa 2px, transparent 2.5px), repeating-linear-gradient(135deg, transparent 0 46px, rgba(201,80,31,0.09) 46px 92px); background-size: 24px 24px, auto; background-attachment: fixed; color: #1d1d1b; font-family: "Trebuchet MS", Verdana, sans-serif; text-align: center; }
+h1 { color: #1d1d1b; margin: 15px 0 5px; font-family: Impact, "Arial Black", sans-serif; font-weight: normal; letter-spacing: 2px; text-transform: uppercase; }
+#score { font-family: Impact, "Arial Black", sans-serif; font-size: 46px; letter-spacing: 4px; margin: 6px; }
+canvas { display: block; margin: 10px auto; width: 96%; max-width: 900px; background: linear-gradient(#9fd0d4 72%, #e2b977 72%); border: 4px solid #1d1d1b; border-radius: 3px; box-shadow: 8px 8px 0 #1d1d1b; }
+button { padding: 12px 25px; margin: 8px; border: 3px solid #1d1d1b; border-radius: 3px; background: #f2b134; color: #1d1d1b; font-family: inherit; font-size: 17px; font-weight: bold; cursor: pointer; box-shadow: 4px 4px 0 #1d1d1b; }
+button:hover { background: #f7c35c; }
+button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #1d1d1b; }
+.controls { line-height: 1.8; color: #3a362e; margin: 22px 12px 12px; }
+.abilities { color: #a3401f; font-weight: bold; }
+.credit { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #dce6f5; background: rgba(0,0,0,0.4); padding: 4px 7px; border-radius: 5px; z-index: 1000; }
+#menuBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  z-index: 0;
+}
+
+#menu { position: fixed; inset: 0; background: #2b6f73; display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.menu-content { background: #f4ecd8; border: 4px solid #1d1d1b; border-radius: 3px; box-shadow: 10px 10px 0 #c9501f; padding: 35px; width: 90%; max-width: 430px; }
+.menu-content h1 { font-size: 35px; margin-bottom: 10px; }
+.menu-content p { color: #3a362e; margin-bottom: 25px; }
+.menu-button { display: block; width: 100%; margin: 15px auto; padding: 18px; font-size: 22px; }
+#gameArea { display: none; }
+#menuBg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.menu-content { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+<div class="credit">by yash</div>
+
+<div id="menu">
+<canvas id="menuBg"></canvas>
+<div class="menu-content">
+<h1>Sports Duel</h1>
+<div id="modeStep">
+<p>Select your game mode!</p>
+<button class="menu-button" onclick="chooseMode(1)">1 VS 1</button>
+<button class="menu-button" onclick="chooseMode(2)">2 VS 2</button>
+</div>
+<div id="oppStep" style="display:none">
+<p>Who are you playing against?</p>
+<button class="menu-button" onclick="chooseOpponent(false)">With Someone</button>
+<button class="menu-button" onclick="chooseOpponent(true)">Solo (vs Bot)</button>
+<button class="menu-button" style="font-size:16px;padding:10px" onclick="showModeStep()">← BACK</button>
+</div>
+<div id="diffStep" style="display:none">
+<p>Pick a bot difficulty!</p>
+<button class="menu-button" onclick="chooseDifficulty('easy')">Easy</button>
+<button class="menu-button" onclick="chooseDifficulty('medium')">Medium</button>
+<button class="menu-button" onclick="chooseDifficulty('hard')">Hard</button>
+<button class="menu-button" style="font-size:16px;padding:10px" onclick="chooseMode(1)">← BACK</button>
+</div>
+<div id="sportStep" style="display:none">
+<p>Select your sport!</p>
+<button class="menu-button" onclick="startGame(pendingMode,'volleyball')">Volleyball</button>
+<button class="menu-button" onclick="startGame(pendingMode,'badminton')">Badminton</button>
+<button class="menu-button" onclick="startGame(pendingMode,'tennis')">Tennis</button>
+<button class="menu-button" style="font-size:16px;padding:10px" onclick="showModeStep()">← BACK</button>
+</div>
+</div>
+</div>
+
+<div id="gameArea">
+<h1 id="gameTitle">Volleyball Duel</h1>
+<div id="score">0 - 0</div>
+<canvas id="game" width="900" height="500"></canvas>
+<button onclick="restart()">RESTART GAME</button>
+<button onclick="backToMenu()">MAIN MENU</button>
+<div class="controls" id="controlsDisplay"></div>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreDisplay = document.getElementById("score");
+
+const WIDTH = 900, HEIGHT = 500, ground = 445, netX = 450;
+
+let score1 = 0, score2 = 0;
+let gameOver = false, gameStarted = false, gameMode = 1;
+let servingSide = 0, serveHit = false, serveInProgress = true, servePlayerIndex = -1;
+let playerTouchingBall = [];
+
+const keys = {};
+const pressed = {};
+
+function normalizeKey(e) {
+if (e.code.startsWith("Numpad")) return e.code.toLowerCase();
+return e.key.toLowerCase();
+}
+
+document.addEventListener("keydown", e => {
+const key = normalizeKey(e);
+if (["arrowup","arrowdown","arrowleft","arrowright"," ","enter","shift"].includes(key) || key.startsWith("numpad")) {
+e.preventDefault();
+}
+if (!keys[key]) pressed[key] = true;
+keys[key] = true;
+});
+
+document.addEventListener("keyup", e => { keys[normalizeKey(e)] = false; });
+
+// Release all keys if the window loses focus
+window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
+
+// PLAYER CREATION
+function createPlayer(x, side, color, c) {
+return {
+x, y: ground - 60, vx: 0, vy: 0, color,
+left: c.left, right: c.right, jump: c.jump, slide: c.slide, set: c.set, spike: c.spike,
+side, radius: 25,
+slideTimer: 0, setCooldown: 0, spikeCooldown: 0,
+effect: "", effectTimer: 0
+};
+}
+
+let players = [];
+
+function createPlayers() {
+players = [];
+
+players.push(createPlayer(gameMode === 1 ? 180 : 150, 0, "#248bff",
+{ left: "a", right: "d", jump: "w", slide: "s", set: "e", spike: "q" }));
+
+if (gameMode === 2) {
+players.push(createPlayer(300, 0, "#55b5ff",
+{ left: "j", right: "l", jump: "i", slide: "k", set: "o", spike: "u" }));
+}
+
+players.push(createPlayer(gameMode === 1 ? 720 : 600, 1, "#ff4b55",
+{ left: "arrowleft", right: "arrowright", jump: "arrowup", slide: "arrowdown", set: "shift", spike: "enter" }));
+
+if (gameMode === 2) {
+players.push(createPlayer(750, 1, "#ff858a",
+{ left: "numpad1", right: "numpad3", jump: "numpad5", slide: "numpad2", set: "numpad6", spike: "numpad4" }));
+}
+
+playerTouchingBall = players.map(() => false);
+}
+
+let ball = { x: 300, y: 180, vx: 4, vy: 1, r: 15 };
+let particles = [];
+
+// START GAME
+let pendingMode = 1, sport = "volleyball";
+const THEMES = {
+volleyball: { bg: "linear-gradient(#9fd0d4 72%, #e2b977 72%)", floor: "#e2b977" },
+badminton: { bg: "linear-gradient(#7d9a86 72%, #b57a43 72%)", floor: "#b57a43" },
+tennis: { bg: "linear-gradient(#b9d3c8 72%, #c4623a 72%)", floor: "#c4623a" }
+};
+const TITLES = { volleyball: "Volleyball Duel", badminton: "Badminton Duel", tennis: "Tennis Duel" };
+
+// ANIMATED MENU BACKGROUND
+const mbg = document.getElementById("menuBg");
+const mctx = mbg.getContext("2d");
+function sizeMenuBg() { mbg.width = innerWidth; mbg.height = innerHeight; }
+sizeMenuBg();
+addEventListener("resize", sizeMenuBg);
+
+const mItems = [];
+for (let i = 0; i < 22; i++) {
+mItems.push({
+kind: ["volley", "tennis", "birdie", "racquet"][i % 4],
+x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+vx: (Math.random() - 0.5) * 1.4, vy: (Math.random() - 0.5) * 1.4,
+r: 18 + Math.random() * 24,
+a: Math.random() * 6.28, va: (Math.random() - 0.5) * 0.03
+});
+}
+
+function drawMenuItem(it) {
+mctx.save();
+mctx.translate(it.x, it.y);
+mctx.rotate(it.a);
+const s = it.r / 15;
+mctx.scale(s, s);
+mctx.lineWidth = 2;
+mctx.lineCap = "round";
+mctx.strokeStyle = "#1d1d1b";
+
+if (it.kind === "volley") {
+mctx.fillStyle = "#f4ecd8";
+mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+mctx.beginPath(); mctx.arc(0, 0, 10, 0, Math.PI * 2);
+mctx.moveTo(-15, 0); mctx.lineTo(15, 0); mctx.moveTo(0, -15); mctx.lineTo(0, 15);
+mctx.stroke();
+} else if (it.kind === "tennis") {
+mctx.fillStyle = "#c8f03c";
+mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+mctx.strokeStyle = "#ffffff";
+mctx.beginPath(); mctx.arc(-17, 0, 14, -0.9, 0.9); mctx.stroke();
+mctx.beginPath(); mctx.arc(17, 0, 14, Math.PI - 0.9, Math.PI + 0.9); mctx.stroke();
+} else if (it.kind === "birdie") {
+mctx.fillStyle = "#ffffff";
+mctx.beginPath();
+mctx.moveTo(4, -5); mctx.lineTo(-17, -13); mctx.lineTo(-17, 13); mctx.lineTo(4, 5);
+mctx.closePath(); mctx.fill(); mctx.stroke();
+mctx.fillStyle = "#e8c27a";
+mctx.beginPath(); mctx.arc(8, 0, 7, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+} else {
+mctx.lineWidth = 3.5;
+mctx.beginPath(); mctx.moveTo(0, 26); mctx.lineTo(0, 10); mctx.stroke();
+mctx.lineWidth = 2.5;
+mctx.fillStyle = "rgba(255,255,255,0.3)";
+mctx.beginPath(); mctx.ellipse(0, -5, 11, 16, 0, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+mctx.lineWidth = 1;
+mctx.beginPath();
+for (let x = -6; x <= 6; x += 4) { mctx.moveTo(x, -17); mctx.lineTo(x, 7); }
+for (let y = -14; y <= 4; y += 5) { mctx.moveTo(-9, y); mctx.lineTo(9, y); }
+mctx.stroke();
+}
+mctx.restore();
+}
+
+function menuBgFrame(t) {
+if (document.getElementById("menu").style.display !== "none") {
+const w = mbg.width, h = mbg.height;
+mctx.fillStyle = "#2b6f73";
+mctx.fillRect(0, 0, w, h);
+
+mctx.fillStyle = "#327a7e";
+const off = (t * 0.03) % 120;
+for (let x = -h + off; x < w; x += 120) {
+mctx.beginPath();
+mctx.moveTo(x, 0); mctx.lineTo(x + 60, 0);
+mctx.lineTo(x + 60 + h, h); mctx.lineTo(x + h, h);
+mctx.fill();
+}
+
+mItems.forEach(it => {
+it.x += it.vx; it.y += it.vy; it.a += it.va;
+if (it.x < -60) it.x = w + 60;
+if (it.x > w + 60) it.x = -60;
+if (it.y < -60) it.y = h + 60;
+if (it.y > h + 60) it.y = -60;
+drawMenuItem(it);
+});
+}
+requestAnimationFrame(menuBgFrame);
+}
+requestAnimationFrame(menuBgFrame);
+
+function showStep(id) {
+["modeStep", "oppStep", "diffStep", "sportStep"].forEach(s => {
+document.getElementById(s).style.display = s === id ? "block" : "none";
+});
+}
+
+function chooseMode(m) {
+pendingMode = m;
+pendingBot = null;
+showStep(m === 1 ? "oppStep" : "sportStep");
+}
+
+function chooseOpponent(solo) {
+pendingBot = null;
+showStep(solo ? "diffStep" : "sportStep");
+}
+
+function chooseDifficulty(level) {
+pendingBot = level;
+showStep("sportStep");
+}
+
+function showModeStep() {
+pendingBot = null;
+showStep("modeStep");
+}
+
+function startGame(mode, s) {
+gameMode = mode;
+sport = s || "volleyball";
+document.getElementById("gameTitle").textContent = TITLES[sport];
+canvas.style.background = THEMES[sport].bg;
+document.getElementById("menu").style.display = "none";
+document.getElementById("gameArea").style.display = "block";
+bot = (mode === 1 && pendingBot) ? { level: pendingBot, timer: 0, noise: 0, pred: { x: 720, t: 99 }, wait: BOT_LEVELS[pendingBot].serveDelay } : null;
+gameStarted = true;
+score1 = 0; score2 = 0;
+gameOver = false;
+particles = [];
+createPlayers();
+restartBall(Math.random() < 0.5 ? 0 : 1);
+updateScore();
+updateControls();
+}
+
+// CONTROL DISPLAY
+function updateControls() {
+const display = document.getElementById("controlsDisplay");
+
+if (gameMode === 1) {
+display.innerHTML = `
+<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>
+Move: A / D | Jump: W<br>
+<span class="abilities">Slide: S | Set: E | Spike: Q</span>
+<br><br>
+${bot ? '<b style="color:#ff4b55">BOT (RED) · ' + bot.level.toUpperCase() + '</b>' : '<b style="color:#ff4b55">PLAYER 2 (RED)</b><br>Move: ← / → | Jump: ↑<br><span class="abilities">Slide: ↓ | Set: SHIFT | Spike: ENTER</span>'}
+<br><br>
+First player to 10 points wins!`;
+} else {
+display.innerHTML = `
+<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>
+Move: A / D | Jump: W<br>
+<span class="abilities">Slide: S | Set: E | Spike: Q</span>
+<br><br>
+<b style="color:#55b5ff">PLAYER 2 (BLUE)</b><br>
+Move: J / L | Jump: I<br>
+<span class="abilities">Slide: K | Set: O | Spike: U</span>
+<br><br>
+<b style="color:#ff4b55">PLAYER 3 (RED)</b><br>
+Move: ← / → | Jump: ↑<br>
+<span class="abilities">Slide: ↓ | Set: SHIFT | Spike: ENTER</span>
+<br><br>
+<b style="color:#ff858a">PLAYER 4 (RED)</b><br>
+Move: NUMPAD 1 / 3 | Jump: NUMPAD 5<br>
+<span class="abilities">Slide: NUMPAD 2 | Set: NUMPAD 6 | Spike: NUMPAD 4</span>
+<br><br>
+First team to 10 points wins!`;
+}
+}
+
+// BOT (solo mode: controls the red player in 1v1)
+let bot = null;
+let pendingBot = null;
+
+const BOT_LEVELS = {
+easy: { react: 40, err: 110, move: 0.5, setRange: 80, setProb: 0.3, spike: 0, slide: 0, ready: 770, serveDelay: 110 },
+medium: { react: 14, err: 40, move: 0.85, setRange: 98, setProb: 0.7, spike: 0.3, slide: 0.3, ready: 720, serveDelay: 70 },
+hard: { react: 2, err: 5, move: 1, setRange: 105, setProb: 1, spike: 0.9, slide: 1, ready: 670, serveDelay: 40 }
+};
+
+// Simulates the ball forward (same physics as updateBall) to find where it lands
+function predictLanding() {
+let x = ball.x, y = ball.y, vx = ball.vx, vy = ball.vy;
+const r = ball.r;
+for (let i = 0; i < 400; i++) {
+vy += 0.25; x += vx; y += vy;
+if (x < r) { x = r; vx *= -0.85; }
+if (x > WIDTH - r) { x = WIDTH - r; vx *= -0.85; }
+if (y < r) { y = r; vy *= -0.85; }
+if (Math.abs(x - netX) < r + 5 && y + r > 315) {
+if (y < 315 && vy > 0) { y = 315 - r; vy *= -0.6; }
+else { x = x < netX ? netX - 5 - r : netX + 5 + r; vx *= -0.8; }
+}
+vx *= 0.999;
+if (y + r >= ground) return { x, t: i };
+}
+return { x, t: 400 };
+}
+
+function botControl() {
+if (!bot) return;
+const p = players[1];
+const L = BOT_LEVELS[bot.level];
+
+// the bot owns the red player's keys: clear them every step
+keys[p.left] = false; keys[p.right] = false;
+delete pressed[p.jump]; delete pressed[p.slide]; delete pressed[p.set]; delete pressed[p.spike];
+
+const grounded = p.y >= ground - 60;
+const serving = serveInProgress && !serveHit && servingSide === p.side;
+const waitingOnServe = serveInProgress && !serveHit && servingSide !== p.side;
+const afterOwnServe = serveInProgress && serveHit && servingSide === p.side;
+
+let target = L.ready;
+let pr = null, mySide = false;
+
+if (serving) {
+target = ball.x;
+if (bot.wait > 0) bot.wait--;
+else if (Math.abs(p.x - ball.x) < 10 && grounded) pressed[p.jump] = true;
+} else {
+bot.wait = L.serveDelay;
+
+// never touch the ball early on the human's serve, or again after our own serve
+if (!waitingOnServe && !afterOwnServe) {
+if (--bot.timer <= 0) {
+bot.timer = L.react;
+bot.pred = predictLanding();
+bot.noise = (Math.random() * 2 - 1) * L.err;
+}
+pr = bot.pred;
+mySide = ball.x > netX || pr.x > netX;
+
+if (mySide) {
+// stand just right of the ball so the hit sends it back toward the net
+const near = ball.x > netX && Math.abs(ball.x - p.x) < 110;
+target = near ? ball.x + 12 + bot.noise * 0.3 : pr.x + 18 + bot.noise;
+target = Math.max(netX + 40, target);
+}
+
+if (!serveInProgress && ball.x >= netX && p.slideTimer === 0) {
+const d = Math.hypot(ball.x - p.x, ball.y - (p.y - 10));
+const airborne = p.y < ground - 62;
+
+if (airborne && d < 112 && ball.x < 570 && ball.y < 245) {
+if (Math.random() < L.spike) pressed[p.spike] = true;
+} else if (d < L.setRange && ball.vy > -3 && Math.random() < L.setProb) {
+pressed[p.set] = true;
+}
+
+// jump to go for a spike when the ball is high near the net
+if (grounded && L.spike > 0 && ball.x > 480 && ball.x < 570 && ball.y > 150 && ball.y < 300 &&
+ball.vy > -1 && Math.abs(p.x - ball.x) < 45 && Math.random() < L.spike * 0.12) {
+pressed[p.jump] = true;
+}
+}
+}
+}
+
+const dx = target - p.x;
+if (Math.abs(dx) > 6 && Math.random() < L.move) {
+if (dx < 0) keys[p.left] = true; else keys[p.right] = true;
+}
+
+// slide to reach a far-away ball that is about to land
+if (mySide && pr && pr.t < 28 && Math.abs(dx) > 100 && grounded && p.slideTimer === 0 && Math.random() < L.slide * 0.25) {
+pressed[p.slide] = true;
+}
+}
+
+// RETURN TO MENU
+function backToMenu() {
+gameStarted = false;
+document.getElementById("menu").style.display = "flex";
+showModeStep();
+document.getElementById("gameArea").style.display = "none";
+for (const key in keys) keys[key] = false;
+for (const key in pressed) delete pressed[key];
+}
+
+// RESTART BALL
+function restartBall(scoringSide) {
+servingSide = scoringSide;
+serveHit = false;
+serveInProgress = true;
+servePlayerIndex = -1;
+playerTouchingBall = players.map(() => false);
+ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: 15 };
+}
+
+// RESTART GAME
+function restart() {
+score1 = 0; score2 = 0;
+gameOver = false;
+particles = [];
+
+players.forEach((p, i) => {
+p.x = gameMode === 1 ? (i === 0 ? 180 : 720) : [150, 300, 600, 750][i];
+p.y = ground - 60;
+p.vx = 0; p.vy = 0;
+p.slideTimer = 0; p.setCooldown = 0; p.spikeCooldown = 0;
+p.effect = ""; p.effectTimer = 0;
+});
+
+restartBall(Math.random() < 0.5 ? 0 : 1);
+updateScore();
+}
+
+function updateScore() { scoreDisplay.textContent = score1 + " - " + score2; }
+
+// PARTICLES
+function createParticles(x, y, color, count = 12) {
+for (let i = 0; i < count; i++) {
+particles.push({ x, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, life: 30, color });
+}
+}
+
+function abilityEffect(p, name) {
+p.effect = name;
+p.effectTimer = 30;
+createParticles(p.x, p.y, p.color);
+}
+
+function ballDistance(p) { return Math.hypot(ball.x - p.x, ball.y - (p.y - 10)); }
+
+// Ball must be on the player's own side of the net
+function ballOnOwnSide(p) { return p.side === 0 ? ball.x <= netX : ball.x >= netX; }
+
+// SLIDE
+function slide(p) {
+if (p.slideTimer > 0) return;
+p.slideTimer = 25;
+
+let direction = 0;
+if (keys[p.left]) direction = -1;
+if (keys[p.right]) direction = 1;
+if (direction === 0) direction = p.side === 0 ? 1 : -1;
+
+p.vx = direction * 11;
+p.vy = 0;
+abilityEffect(p, "SLIDE");
+}
+
+// SET
+function setBall(p) {
+if (p.setCooldown > 0) return;
+if (serveInProgress) return; // no set during the serve
+if (!ballOnOwnSide(p)) return; // can't reach across the net
+if (ballDistance(p) > 105) return;
+
+p.setCooldown = 35;
+const direction = p.side === 0 ? 1 : -1;
+ball.vx = direction * 4.5 + p.vx * 0.2;
+ball.vy = -10;
+ball.x += direction * 8;
+abilityEffect(p, "SET");
+}
+
+// SPIKE
+function spikeBall(p) {
+if (p.spikeCooldown > 0) return;
+if (serveInProgress) return; // no spike during the serve
+if (!ballOnOwnSide(p)) return; // can't reach across the net
+if (ballDistance(p) > 115) return;
+if (p.y >= ground - 62) return;
+
+p.spikeCooldown = 50;
+const direction = p.side === 0 ? 1 : -1;
+ball.vx = direction * 9 + p.vx * 0.2;
+ball.vy = 11;
+ball.x += direction * 12;
+abilityEffect(p, "SPIKE");
+createParticles(ball.x, ball.y, "#ffd166", 18);
+}
+
+// PLAYER MOVEMENT
+function movePlayers() {
+players.forEach(p => {
+p.setCooldown = Math.max(0, p.setCooldown - 1);
+p.spikeCooldown = Math.max(0, p.spikeCooldown - 1);
+p.effectTimer = Math.max(0, p.effectTimer - 1);
+if (p.effectTimer === 0) p.effect = "";
+
+if (pressed[p.slide]) slide(p);
+if (pressed[p.set]) setBall(p);
+if (pressed[p.spike]) spikeBall(p);
+
+const speed = 5;
+
+if (p.slideTimer > 0) {
+p.slideTimer--;
+} else {
+if (keys[p.left]) p.x -= speed;
+if (keys[p.right]) p.x += speed;
+}
+
+if (pressed[p.jump] && p.y >= ground - 60) {
+p.vy = -13;
+p.slideTimer = 0;
+}
+
+p.vy += 0.55;
+p.y += p.vy;
+
+if (p.y > ground - 60) { p.y = ground - 60; p.vy = 0; }
+
+p.x = Math.max(25, Math.min(875, p.x));
+
+if (p.side === 0) p.x = Math.min(p.x, netX - 30);
+else p.x = Math.max(p.x, netX + 30);
+
+if (p.slideTimer > 0) {
+p.x += p.vx;
+p.vx *= 0.88;
+} else {
+p.vx = 0;
+}
+});
+}
+
+// SERVE POINT
+function awardServePoint(winnerSide) {
+if (winnerSide === 0) score1++; else score2++;
+updateScore();
+
+if ((score1 >= 10 || score2 >= 10) && Math.abs(score1 - score2) >= 2) gameOver = true;
+
+restartBall(winnerSide);
+}
+
+// BALL COLLISION
+function collideBall() {
+for (let i = 0; i < players.length; i++) {
+const p = players[i];
+const dx = ball.x - p.x;
+const dy = ball.y - (p.y - 10);
+const dist = Math.hypot(dx, dy);
+const playerRadius = p.slideTimer > 0 ? 32 : p.radius;
+const minDist = ball.r + playerRadius;
+const touching = dist < minDist && dist > 0;
+
+if (!touching) { playerTouchingBall[i] = false; continue; }
+if (playerTouchingBall[i]) continue;
+playerTouchingBall[i] = true;
+
+if (serveInProgress) {
+if (!serveHit && p.side !== servingSide) { awardServePoint(servingSide); return; }
+
+if (!serveHit && p.side === servingSide) {
+serveHit = true;
+servePlayerIndex = i;
+ball.vx = p.side === 0 ? 9 : -9;
+ball.vy = -10;
+const nx = dx / dist, ny = dy / dist;
+ball.x = p.x + nx * minDist;
+ball.y = p.y - 10 + ny * minDist;
+createParticles(ball.x, ball.y, p.color, 5);
+return;
+}
+
+if (serveHit && p.side === servingSide) {
+awardServePoint(p.side === 0 ? 1 : 0);
+return;
+}
+
+if (p.side !== servingSide) serveInProgress = false;
+}
+
+const nx = dx / dist, ny = dy / dist;
+ball.x = p.x + nx * minDist;
+ball.y = p.y - 10 + ny * minDist;
+
+const speed = Math.hypot(ball.vx, ball.vy);
+ball.vx = nx * Math.max(speed, 6) + p.vx * 0.3;
+ball.vy = ny * Math.max(speed, 6) - 1;
+
+createParticles(ball.x, ball.y, p.color, 5);
+}
+}
+
+// BALL PHYSICS
+function updateBall() {
+if (ball.vx === 0 && ball.vy === 0) { collideBall(); return; }
+
+ball.vy += 0.25;
+ball.x += ball.vx;
+ball.y += ball.vy;
+
+if (ball.x < ball.r) { ball.x = ball.r; ball.vx *= -0.85; }
+if (ball.x > WIDTH - ball.r) { ball.x = WIDTH - ball.r; ball.vx *= -0.85; }
+if (ball.y < ball.r) { ball.y = ball.r; ball.vy *= -0.85; }
+
+// Net: one check, only active within the net's actual width
+if (Math.abs(ball.x - netX) < ball.r + 5 && ball.y + ball.r > 315) {
+if (ball.y < 315 && ball.vy > 0) {
+// landing on top of the net
+ball.y = 315 - ball.r;
+ball.vy *= -0.6;
+} else {
+// hitting the side of the net
+ball.x = ball.x < netX ? netX - 5 - ball.r : netX + 5 + ball.r;
+ball.vx *= -0.8;
+}
+}
+
+collideBall();
+
+// Ground = point
+if (ball.y + ball.r >= ground) {
+if (ball.x < netX) { score2++; restartBall(1); }
+else { score1++; restartBall(0); }
+
+updateScore();
+
+if ((score1 >= 10 || score2 >= 10) && Math.abs(score1 - score2) >= 2) gameOver = true;
+}
+
+ball.vx *= 0.999;
+}
+
+function updateParticles() {
+particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life--; });
+particles = particles.filter(p => p.life > 0);
+}
+
+function drawParticles() {
+particles.forEach(p => {
+ctx.globalAlpha = p.life / 30;
+ctx.fillStyle = p.color;
+ctx.beginPath();
+ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+ctx.fill();
+});
+ctx.globalAlpha = 1;
+}
+
+// COURT
+function drawCourt() {
+ctx.fillStyle = THEMES[sport].floor;
+ctx.fillRect(0, ground, WIDTH, 55);
+
+ctx.strokeStyle = "white";
+ctx.lineWidth = 4;
+ctx.beginPath();
+ctx.moveTo(0, ground);
+ctx.lineTo(WIDTH, ground);
+ctx.stroke();
+
+ctx.fillStyle = "#eeeeee";
+ctx.fillRect(netX - 5, 315, 10, 130);
+
+ctx.strokeStyle = "#ffffff";
+ctx.lineWidth = 2;
+for (let y = 320; y < 445; y += 12) {
+ctx.beginPath();
+ctx.moveTo(netX - 17, y);
+ctx.lineTo(netX + 17, y);
+ctx.stroke();
+}
+
+ctx.fillStyle = "#333";
+ctx.fillRect(netX - 7, 305, 14, 140);
+}
+
+// PLAYER DRAWING
+function drawPlayer(p) {
+if (p.slideTimer > 0) {
+ctx.fillStyle = p.color;
+ctx.beginPath();
+ctx.ellipse(p.x, p.y + 12, 35, 15, 0, 0, Math.PI * 2);
+ctx.fill();
+} else {
+ctx.fillStyle = p.color;
+ctx.beginPath();
+ctx.arc(p.x, p.y - 10, p.radius, 0, Math.PI * 2);
+ctx.fill();
+
+ctx.fillStyle = "white";
+ctx.beginPath();
+ctx.arc(p.x + 8, p.y - 16, 4, 0, Math.PI * 2);
+ctx.fill();
+
+ctx.strokeStyle = p.color;
+ctx.lineWidth = 8;
+ctx.lineCap = "round";
+ctx.beginPath();
+ctx.moveTo(p.x - 8, p.y + 12);
+ctx.lineTo(p.x - 12, p.y + 28);
+ctx.moveTo(p.x + 8, p.y + 12);
+ctx.lineTo(p.x + 12, p.y + 28);
+ctx.stroke();
+}
+
+if (sport !== "volleyball") drawRacquet(p);
+
+if (gameMode === 2) {
+ctx.fillStyle = "white";
+ctx.font = "bold 13px Arial";
+ctx.textAlign = "center";
+ctx.fillText(players.indexOf(p) + 1, p.x, p.y - 35);
+}
+
+if (p.effectTimer > 0) {
+ctx.fillStyle = "#ffd166";
+ctx.font = "bold 18px Arial";
+ctx.textAlign = "center";
+ctx.fillText(p.effect, p.x, p.y - 55);
+}
+}
+
+// BALL DRAWING
+// RACQUET (badminton + tennis)
+function drawRacquet(p) {
+const d = p.side === 0 ? 1 : -1;
+let a = -1.0; // resting: angled up toward the net
+if (p.slideTimer > 0) a = 0.1;
+else if (p.effectTimer > 0) a = p.effect === "SPIKE" ? 0.6 : -1.5;
+const theta = d === 1 ? a : Math.PI - a;
+const sx = p.x + d * 14, sy = p.y - 2;
+const handle = 16;
+const hx = sx + Math.cos(theta) * handle, hy = sy + Math.sin(theta) * handle;
+const big = sport === "tennis";
+const rx = big ? 18 : 15, ry = big ? 13 : 10;
+const cx = hx + Math.cos(theta) * rx, cy = hy + Math.sin(theta) * rx;
+
+ctx.lineCap = "round";
+ctx.strokeStyle = "#222";
+ctx.lineWidth = 4;
+ctx.beginPath();
+ctx.moveTo(sx, sy);
+ctx.lineTo(hx, hy);
+ctx.stroke();
+
+ctx.save();
+ctx.translate(cx, cy);
+ctx.rotate(theta);
+ctx.fillStyle = "rgba(255,255,255,0.25)";
+ctx.beginPath();
+ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+ctx.fill();
+ctx.strokeStyle = "rgba(40,40,40,0.55)";
+ctx.lineWidth = 1;
+ctx.beginPath();
+for (let x = -rx + 5; x < rx - 3; x += 5) { ctx.moveTo(x, -ry + 2); ctx.lineTo(x, ry - 2); }
+for (let y = -ry + 4; y < ry - 2; y += 5) { ctx.moveTo(-rx + 3, y); ctx.lineTo(rx - 3, y); }
+ctx.stroke();
+ctx.strokeStyle = big ? "#222" : "#555";
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+ctx.stroke();
+ctx.restore();
+}
+
+// TENNIS BALL
+function drawTennisBall() {
+ctx.fillStyle = "#c8f03c";
+ctx.beginPath();
+ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+ctx.fill();
+
+ctx.strokeStyle = "white";
+ctx.lineWidth = 2;
+ctx.beginPath();
+ctx.arc(ball.x - ball.r * 1.15, ball.y, ball.r * 0.95, -0.9, 0.9);
+ctx.stroke();
+ctx.beginPath();
+ctx.arc(ball.x + ball.r * 1.15, ball.y, ball.r * 0.95, Math.PI - 0.9, Math.PI + 0.9);
+ctx.stroke();
+
+ctx.strokeStyle = "#6b8e0a";
+ctx.beginPath();
+ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+ctx.stroke();
+}
+
+// BIRDIE (shuttlecock): cork leads, feathers trail
+function drawBirdie() {
+const moving = Math.hypot(ball.vx, ball.vy) > 0.5;
+const ang = moving ? Math.atan2(ball.vy, ball.vx) : Math.PI / 2;
+
+ctx.save();
+ctx.translate(ball.x, ball.y);
+ctx.rotate(ang);
+
+ctx.fillStyle = "#ffffff";
+ctx.strokeStyle = "#8a8a8a";
+ctx.lineWidth = 1.5;
+ctx.beginPath();
+ctx.moveTo(4, -5);
+ctx.lineTo(-17, -13);
+ctx.lineTo(-17, 13);
+ctx.lineTo(4, 5);
+ctx.closePath();
+ctx.fill();
+ctx.stroke();
+
+ctx.beginPath();
+for (let y = -9; y <= 9; y += 4.5) { ctx.moveTo(3, y * 0.5); ctx.lineTo(-17, y * 1.4); }
+ctx.stroke();
+
+ctx.strokeStyle = "#8a8a8a";
+ctx.beginPath();
+ctx.moveTo(-10, -10.5);
+ctx.lineTo(-10, 10.5);
+ctx.stroke();
+
+ctx.fillStyle = "#e8c27a";
+ctx.strokeStyle = "#7a5a20";
+ctx.beginPath();
+ctx.arc(8, 0, 7, 0, Math.PI * 2);
+ctx.fill();
+ctx.stroke();
+
+ctx.restore();
+}
+
+function drawBall() {
+if (sport === "tennis") { drawTennisBall(); return; }
+if (sport === "badminton") { drawBirdie(); return; }
+
+ctx.fillStyle = "#ffffff";
+ctx.beginPath();
+ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+ctx.fill();
+
+ctx.strokeStyle = "#222";
+ctx.lineWidth = 2;
+ctx.beginPath();
+ctx.arc(ball.x, ball.y, ball.r - 5, 0, Math.PI * 2);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(ball.x - ball.r, ball.y);
+ctx.lineTo(ball.x + ball.r, ball.y);
+ctx.moveTo(ball.x, ball.y - ball.r);
+ctx.lineTo(ball.x, ball.y + ball.r);
+ctx.stroke();
+}
+
+// GAME OVER
+function drawGameOver() {
+ctx.fillStyle = "rgba(0,0,0,.75)";
+ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+ctx.fillStyle = "#ffd166";
+ctx.font = "bold 48px Arial";
+ctx.textAlign = "center";
+ctx.fillText(score1 > score2 ? "BLUE WINS!" : "RED WINS!", WIDTH / 2, 220);
+
+ctx.fillStyle = "white";
+ctx.font = "25px Arial";
+ctx.fillText("Click RESTART GAME to play again", WIDTH / 2, 275);
+}
+
+function draw() {
+ctx.clearRect(0, 0, WIDTH, HEIGHT);
+drawCourt();
+players.forEach(drawPlayer);
+drawBall();
+drawParticles();
+if (gameOver) drawGameOver();
+}
+
+// GAME LOOP (fixed 60 Hz timestep, so speed is the same on any monitor)
+const STEP = 1000 / 60;
+let lastTime = 0, acc = 0;
+
+function loop(t = 0) {
+acc += Math.min(t - lastTime, 100);
+lastTime = t;
+
+while (acc >= STEP) {
+if (gameStarted && !gameOver) {
+botControl();
+movePlayers();
+updateBall();
+updateParticles();
+}
+for (const key in pressed) delete pressed[key];
+acc -= STEP;
+}
+
+draw();
+requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
+
+
+
+
+
+
