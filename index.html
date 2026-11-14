@@ -144,7 +144,7 @@ let hitShield = 0;
 let paused = false;
 let smashStreak = [0, 0];
 let streakOwner = [-1, -1];
-let touches = [0, 0], notice = null;
+let touches = [0, 0], notice = null, lastHitTick = -1;
 let stats = null, rally = 0, longestRally = 0, matchTicks = 0, statsOpen = false;
 let playerTouchingBall = [];
 
@@ -568,7 +568,7 @@ function backToMenu() {
 // Highlight the main idea of each section in your notes.
 function restartBall(scoringSide) {
   if (sport === "basketball") { bbSetup(1 - scoringSide); return; }
-  servingSide = scoringSide; serveHit = false; serveInProgress = true; servePlayerIndex = -1; lastHitSide = -1; hitShield = 0; smashStreak = [0, 0]; touches = [0, 0]; notice = null;
+  servingSide = scoringSide; serveHit = false; serveInProgress = true; servePlayerIndex = -1; lastHitSide = -1; hitShield = 0; smashStreak = [0, 0]; touches = [0, 0]; notice = null; lastHitTick = -1;
   playerTouchingBall = players.map(() => false);
   ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: sport === "badminton" ? 19 : 15, bnc: 0 };
 }
@@ -726,6 +726,7 @@ function hideStats() { document.getElementById("statsView").style.display = "non
 // Flashcards: quiz yourself, then check the answer.
 function registerHit(p, isSmash = false) {
   touches[p.side] = lastHitSide === p.side ? touches[p.side] + 1 : 1;
+  lastHitTick = matchTicks;
   lastHitSide = p.side; ball.bnc = 0;
   hitShield = 10;
   stats[p.side].hits++; rally++;
@@ -1157,6 +1158,7 @@ function dropSolve(dir, gf) {
 // Highlight the main idea of each section in your notes.
 function setBall(p) {
   if (p.setCooldown > 0 || !canHit(p) || ballDistance(p) > SPORTS[sport].setReach) return;
+  if (lastHitTick === matchTicks) return;
   if (touchFault(p)) return;
   p.setCooldown = 35;
   const dir = p.side === 0 ? 1 : -1, S = SPORTS[sport];
@@ -1189,6 +1191,7 @@ function setBall(p) {
 // Revision tip: repeat difficult topics at spaced intervals.
 function spikeBall(p, power = 1) {
   if (p.spikeCooldown > 0 || !canHit(p) || ballDistance(p) > SPORTS[sport].hitReach) return;
+  if (lastHitTick === matchTicks) return;
   const air = p.y < ground - 62, dir = p.side === 0 ? 1 : -1;
   let vx, vy, label;
   if (sport === "volleyball") {
@@ -1296,12 +1299,13 @@ function collideBall() {
         createParticles(ball.x, ball.y, p.color, 5);
         return;
       }
-      if (serveHit && p.side === servingSide && i === servePlayerIndex) { awardPoint(p.side === 0 ? 1 : 0); return; }
+      if (serveHit && p.side === servingSide) { awardPoint(p.side === 0 ? 1 : 0); return; }
       if (p.side !== servingSide) serveInProgress = false;
     }
 
     const nx = dx / dist, ny = dy / dist;
     ball.x = p.x + nx * minDist; ball.y = p.y - 10 + ny * minDist;
+    if (lastHitTick === matchTicks) continue;
     if (touchFault(p)) return;
     registerHit(p);
 
