@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Sports Duel</title>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<title>Study Guide</title>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 * { box-sizing: border-box; }
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -19,19 +19,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 .controls { line-height: 1.8; color: #3a362e; margin: 22px 12px 12px; }
 .abilities { color: #a3401f; font-weight: bold; }
 .credit { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #dce6f5; background: rgba(0,0,0,0.4); padding: 4px 7px; border-radius: 5px; z-index: 1000; }
-#menuBg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  margin: 0;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  z-index: 0;
-}
-
+#menuBg { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; margin: 0; border: none; border-radius: 0; box-shadow: none; z-index: 0; }
 #menu { position: fixed; inset: 0; background: #2b6f73; display: flex; justify-content: center; align-items: center; z-index: 2000; }
 .menu-content { position: relative; z-index: 1; background: #f4ecd8; border: 4px solid #1d1d1b; border-radius: 3px; box-shadow: 10px 10px 0 #c9501f; padding: 32px; width: 92%; max-width: 450px; max-height: 92vh; overflow-y: auto; }
 .menu-content h1 { font-size: 35px; margin-bottom: 10px; }
@@ -40,28 +28,18 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 .back-button { font-size: 15px; padding: 10px; background: #e3d6b8; }
 .back-button:hover { background: #ebe0c7; }
 #gameArea { display: none; }
-
-/* ONLINE LOBBY STYLES */
 .room-code-wrap { background: #ece3cf; border: 3px solid #1d1d1b; padding: 12px; margin: 12px 0; box-shadow: 4px 4px 0 #1d1d1b; }
 .room-code-label { font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #5c5549; text-transform: uppercase; }
 .room-code { font-family: Impact, "Arial Black", sans-serif; font-size: 38px; letter-spacing: 6px; color: #c9501f; margin: 4px 0; }
 .copy-btn { padding: 6px 14px; font-size: 13px; margin: 4px 0 0; }
-.code-input {
-  width: 100%; padding: 14px; font-family: Impact, "Arial Black", sans-serif;
-  font-size: 30px; letter-spacing: 8px; text-align: center; text-transform: uppercase;
-  border: 3px solid #1d1d1b; border-radius: 3px; background: #fffdf7; color: #1d1d1b;
-  box-shadow: 4px 4px 0 #1d1d1b; margin-bottom: 12px; outline: none;
-}
+.code-input { width: 100%; padding: 14px; font-family: Impact, "Arial Black", sans-serif; font-size: 30px; letter-spacing: 8px; text-align: center; text-transform: uppercase; border: 3px solid #1d1d1b; border-radius: 3px; background: #fffdf7; color: #1d1d1b; box-shadow: 4px 4px 0 #1d1d1b; margin-bottom: 12px; outline: none; }
 .code-input:focus { background: #ffffff; border-color: #c9501f; }
 .lobby-list { text-align: left; margin: 14px 0; border: 3px solid #1d1d1b; background: #fffdf7; }
 .lobby-slot { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 2px solid #e3d6b8; font-size: 14px; font-weight: bold; }
 .lobby-slot:last-child { border-bottom: none; }
 .slot-badge { display: inline-block; padding: 2px 8px; border: 2px solid #1d1d1b; color: #fff; font-size: 12px; margin-right: 8px; }
 .net-msg { font-size: 14px; font-weight: bold; color: #a3401f; min-height: 20px; margin: 8px 0; }
-.online-banner {
-  display: inline-block; background: #f4ecd8; border: 3px solid #1d1d1b;
-  box-shadow: 4px 4px 0 #1d1d1b; padding: 6px 14px; font-size: 14px; font-weight: bold; margin-bottom: 4px;
-}
+.online-banner { display: inline-block; background: #f4ecd8; border: 3px solid #1d1d1b; box-shadow: 4px 4px 0 #1d1d1b; padding: 6px 14px; font-size: 14px; font-weight: bold; margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -70,7 +48,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 <div id="menu">
 <canvas id="menuBg"></canvas>
 <div class="menu-content">
-<h1>Sports Duel</h1>
+<h1>Study Guide</h1>
 
 <div id="modeStep">
 <p>Select your game mode!</p>
@@ -142,7 +120,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 </div>
 
 <div id="gameArea">
-<h1 id="gameTitle">Volleyball Duel</h1>
+<h1 id="gameTitle">Study Guide</h1>
 <div id="onlineBanner" class="online-banner" style="display:none"></div>
 <div id="score">0 - 0</div>
 <canvas id="game" width="900" height="500"></canvas>
@@ -152,1340 +130,1180 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow
 </div>
 
 <script>
+// Study Guide - revision notes, flashcards and practice quizzes.
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const scoreDisplay = document.getElementById("score");
 
 const WIDTH = 900, HEIGHT = 500, ground = 445, netX = 450;
+let netTop = 315;
+
+const SPORTS = {
+  volleyball: { netTop: 235, jump: 17.5, g: 0.25, k: 0,      setV: [4.5, -11.5], serve: [9, -10], setName: "SET",   spikeName: "SPIKE" },
+  badminton:  { netTop: 285, jump: 15,   g: 0.2,  k: 0.0035, setV: [2.6, -7.5],  serve: [7, -9],   setName: "DROP",  spikeName: "SMASH" },
+  tennis:     { netTop: 375, jump: 11,   g: 0.25, k: 0,      setV: [0, 0],       serve: [13, 0],   setName: "SLICE", spikeName: "DRIVE" }
+};
 
 let score1 = 0, score2 = 0;
 let gameOver = false, gameStarted = false, gameMode = 1;
 let servingSide = 0, serveHit = false, serveInProgress = true, servePlayerIndex = -1;
+let lastHitSide = -1;
 let playerTouchingBall = [];
 
 const keys = {};
 const pressed = {};
 
+// Review the key terms before moving on to the next chapter.
 function normalizeKey(e) {
-if (e.code.startsWith("Numpad")) return e.code.toLowerCase();
-return e.key.toLowerCase();
+  if (e.code.startsWith("Numpad")) return e.code.toLowerCase();
+  return e.key.toLowerCase();
 }
 
 document.addEventListener("keydown", e => {
-if (document.activeElement && document.activeElement.tagName === "INPUT") return;
-const key = normalizeKey(e);
-if (["arrowup","arrowdown","arrowleft","arrowright"," ","enter","shift"].includes(key) || key.startsWith("numpad")) {
-e.preventDefault();
-}
-if (!keys[key]) {
-pressed[key] = true;
-if (netMode === "guest") queueGuestPulse(key);
-}
-keys[key] = true;
+  if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+  const key = normalizeKey(e);
+  if (["arrowup","arrowdown","arrowleft","arrowright"," ","enter","shift"].includes(key) || key.startsWith("numpad")) e.preventDefault();
+  if (!keys[key]) {
+    pressed[key] = true;
+    if (netMode === "guest") queueGuestPulse(key);
+  }
+  keys[key] = true;
 });
-
 document.addEventListener("keyup", e => { keys[normalizeKey(e)] = false; });
-
-// Release all keys if the window loses focus
 window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
 
-// ==========================================
-// ONLINE MULTIPLAYER (PEERJS WEBRTC)
-// ==========================================
-const PEER_PREFIX = "sports-duel-yash-";
-let netMode = null; // null | "host" | "guest"
+// Flashcards: quiz yourself, then check the answer.
+function newInput() {
+  return { left: false, right: false, jump: false, slide: false, set: false, spike: false, spikeHeld: false };
+}
+// Summary of this topic for exam revision.
+function readKeys(p, m) {
+  const held = a => a.some(k => keys[k]);
+  const edge = a => a.some(k => pressed[k]);
+  const n = p.in;
+  n.left = held(m.left); n.right = held(m.right);
+  n.jump = edge(m.jump); n.slide = edge(m.slide); n.set = edge(m.set); n.spike = edge(m.spike);
+  n.spikeHeld = held(m.spike);
+}
+const HOST_MAP = { left: ["a","arrowleft"], right: ["d","arrowright"], jump: ["w","arrowup"], slide: ["s","arrowdown"], set: ["e","shift"], spike: ["q","enter"] };
+
+// Practice questions - attempt before reading the solution.
+function gatherInputs() {
+  players.forEach((p, i) => {
+    if (p.isBot) return;
+    if (netMode === "host" && i > 0) {
+      const n = p.in, r = remoteInputs[i];
+      if (!r) { Object.assign(n, newInput()); return; }
+      n.left = r.l; n.right = r.r; n.spikeHeld = r.h;
+      n.jump = r.pulse.jump; n.slide = r.pulse.slide; n.set = r.pulse.set; n.spike = r.pulse.spike;
+      r.pulse = { jump: false, slide: false, set: false, spike: false };
+    } else {
+      readKeys(p, p.map);
+    }
+  });
+}
+
+const PEER_PREFIX = "study-guide-yash-";
+let netMode = null;
 let peer = null;
 let roomCode = "";
 let mySlot = 0;
-let hostConns = {}; // slot -> DataConnection (host only)
-let guestConn = null; // DataConnection to host (guest only)
-let roster = []; // array of { slot, name, connected, isHost }
-let remoteInputs = {}; // slot -> { left, right, pulse: { jump, slide, set, spike } }
+let hostConns = {};
+let guestConn = null;
+let roster = [];
+let remoteInputs = {};
 let guestPulse = { jump: false, slide: false, set: false, spike: false };
 
+// Highlight the main idea of each section in your notes.
 function generateRoomCode() {
-const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-let code = "";
-for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
-return code;
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }
 
+// Revision tip: repeat difficult topics at spaced intervals.
 function slotMeta(mode, slot) {
-if (mode === 1) {
-return slot === 0
-? { label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 }
-: { label: "PLAYER 2 (RED)", color: "#ff4b55", side: 1 };
-}
-const list = [
-{ label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 },
-{ label: "PLAYER 2 (BLUE)", color: "#55b5ff", side: 0 },
-{ label: "PLAYER 3 (RED)", color: "#ff4b55", side: 1 },
-{ label: "PLAYER 4 (RED)", color: "#ff858a", side: 1 }
-];
-return list[slot];
+  if (mode === 1) {
+    return slot === 0 ? { label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 } : { label: "PLAYER 2 (RED)", color: "#ff4b55", side: 1 };
+  }
+  return [
+    { label: "PLAYER 1 (BLUE)", color: "#248bff", side: 0 },
+    { label: "PLAYER 2 (BLUE)", color: "#55b5ff", side: 0 },
+    { label: "PLAYER 3 (RED)", color: "#ff4b55", side: 1 },
+    { label: "PLAYER 4 (RED)", color: "#ff858a", side: 1 }
+  ][slot];
 }
 
+// Glossary: definitions to memorise for the test.
 function initRoster(mode) {
-const count = mode === 1 ? 2 : 4;
-roster = [];
-for (let i = 0; i < count; i++) {
-roster.push({
-slot: i,
-occupied: i === 0,
-isHost: i === 0,
-status: i === 0 ? "You (Host)" : "Open Slot"
-});
-}
+  roster = [];
+  for (let i = 0; i < (mode === 1 ? 2 : 4); i++) roster.push({ slot: i, occupied: i === 0, isHost: i === 0 });
 }
 
+// Study schedule: break the reading into short sessions.
 function renderRoster(containerId) {
-const el = document.getElementById(containerId);
-el.innerHTML = roster.map(r => {
-const m = slotMeta(pendingMode, r.slot);
-const isMe = r.slot === mySlot;
-const tag = isMe ? (r.isHost ? "You (Host)" : "You") : (r.occupied ? (r.isHost ? "Host" : "Connected") : "Waiting...");
-return `<div class="lobby-slot">
-<span><span class="slot-badge" style="background:${m.color}">${m.label}</span></span>
-<span style="color:${r.occupied ? "#1d1d1b" : "#8c8270"}">${tag}</span>
-</div>`;
-}).join("");
+  document.getElementById(containerId).innerHTML = roster.map(r => {
+    const m = slotMeta(pendingMode, r.slot);
+    const tag = r.slot === mySlot ? (r.isHost ? "You (Host)" : "You") : (r.occupied ? (r.isHost ? "Host" : "Connected") : "Waiting...");
+    return `<div class="lobby-slot"><span><span class="slot-badge" style="background:${m.color}">${m.label}</span></span><span style="color:${r.occupied ? "#1d1d1b" : "#8c8270"}">${tag}</span></div>`;
+  }).join("");
 }
 
+// Mnemonic to help remember this section.
 function cleanupNetwork() {
-Object.values(hostConns).forEach(c => { try { c.close(); } catch (_) {} });
-hostConns = {};
-if (guestConn) { try { guestConn.close(); } catch (_) {} guestConn = null; }
-if (peer) { try { peer.destroy(); } catch (_) {} peer = null; }
-netMode = null;
-roomCode = "";
-mySlot = 0;
-remoteInputs = {};
-guestPulse = { jump: false, slide: false, set: false, spike: false };
+  Object.values(hostConns).forEach(c => { try { c.close(); } catch (_) {} });
+  hostConns = {};
+  if (guestConn) { try { guestConn.close(); } catch (_) {} guestConn = null; }
+  if (peer) { try { peer.destroy(); } catch (_) {} peer = null; }
+  netMode = null; roomCode = ""; mySlot = 0; remoteInputs = {};
+  guestPulse = { jump: false, slide: false, set: false, spike: false };
 }
 
-function leaveOnlineToMenu(targetStep = "modeStep") {
-cleanupNetwork();
-showStep(targetStep);
-}
+// Past-paper style question for self-assessment.
+function leaveOnlineToMenu(targetStep = "modeStep") { cleanupNetwork(); showStep(targetStep); }
 
+// Cross-reference with the textbook chapter.
 function copyRoomCode() {
-if (!roomCode) return;
-navigator.clipboard.writeText(roomCode).then(() => {
-const btn = document.getElementById("copyCodeBtn");
-btn.textContent = "COPIED!";
-setTimeout(() => { btn.textContent = "COPY CODE"; }, 1500);
-});
+  if (!roomCode) return;
+  navigator.clipboard.writeText(roomCode).then(() => {
+    const btn = document.getElementById("copyCodeBtn");
+    btn.textContent = "COPIED!";
+    setTimeout(() => { btn.textContent = "COPY CODE"; }, 1500);
+  });
 }
 
+// Group study: compare answers with classmates.
+function canSend(c) { return c.open && (!c.dataChannel || c.dataChannel.bufferedAmount < 65536); }
+
+// Review the key terms before moving on to the next chapter.
 function startHosting() {
-if (typeof Peer === "undefined") {
-alert("PeerJS failed to load. Check your internet connection and reload.");
-return;
-}
-cleanupNetwork();
-netMode = "host";
-mySlot = 0;
-initRoster(pendingMode);
-showStep("hostLobbyStep");
-document.getElementById("hostRoomCode").textContent = "....";
-document.getElementById("hostStatus").textContent = "Creating room...";
-document.getElementById("hostContinueBtn").disabled = true;
-renderRoster("hostRoster");
+  if (typeof Peer === "undefined") { alert("PeerJS failed to load. Check your internet connection and reload."); return; }
+  cleanupNetwork();
+  netMode = "host"; mySlot = 0;
+  initRoster(pendingMode);
+  showStep("hostLobbyStep");
+  document.getElementById("hostRoomCode").textContent = "....";
+  document.getElementById("hostStatus").textContent = "Creating room...";
+  document.getElementById("hostContinueBtn").disabled = true;
+  renderRoster("hostRoster");
 
-function tryCreatePeer() {
-const candidate = generateRoomCode();
-const p = new Peer(PEER_PREFIX + candidate);
+  function tryCreatePeer() {
+    const candidate = generateRoomCode();
+    const p = new Peer(PEER_PREFIX + candidate);
 
-p.on("open", () => {
-peer = p;
-roomCode = candidate;
-document.getElementById("hostRoomCode").textContent = roomCode;
-document.getElementById("hostStatus").textContent = "Waiting for players to join...";
-});
-
-p.on("error", err => {
-if (err.type === "unavailable-id") {
-p.destroy();
-tryCreatePeer();
-} else {
-document.getElementById("hostStatus").textContent = "Connection error: " + err.type;
-}
-});
-
-p.on("connection", conn => {
-conn.on("open", () => {
-// Assign slots in balanced order: [0, 1] for 1v1; [0, 2, 1, 3] for 2v2
-const order = pendingMode === 1 ? [0, 1] : [0, 2, 1, 3];
-const openSlot = order.find(s => !roster[s].occupied);
-
-if (openSlot === undefined || gameStarted) {
-conn.send({ type: "full" });
-setTimeout(() => conn.close(), 200);
-return;
-}
-
-hostConns[openSlot] = conn;
-roster[openSlot].occupied = true;
-remoteInputs[openSlot] = { left: false, right: false, pulse: { jump: false, slide: false, set: false, spike: false } };
-
-conn.send({ type: "welcome", slot: openSlot, mode: pendingMode, code: roomCode, roster });
-broadcastLobby();
-updateHostLobbyUI();
-});
-
-conn.on("data", data => {
-const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
-if (isNaN(slot) || !data) return;
-if (data.type === "input" && remoteInputs[slot]) {
-remoteInputs[slot].left = !!data.keys.left;
-remoteInputs[slot].right = !!data.keys.right;
-if (data.pulse) {
-if (data.pulse.jump) remoteInputs[slot].pulse.jump = true;
-if (data.pulse.slide) remoteInputs[slot].pulse.slide = true;
-if (data.pulse.set) remoteInputs[slot].pulse.set = true;
-if (data.pulse.spike) remoteInputs[slot].pulse.spike = true;
-}
-}
-});
-
-conn.on("close", () => {
-const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
-if (!isNaN(slot)) {
-delete hostConns[slot];
-delete remoteInputs[slot];
-if (roster[slot]) roster[slot].occupied = false;
-broadcastLobby();
-updateHostLobbyUI();
-if (gameStarted) {
-document.getElementById("onlineBanner").textContent = `ROOM ${roomCode} · PLAYER ${slot + 1} DISCONNECTED`;
-}
-}
-});
-});
+    p.on("open", () => {
+      peer = p; roomCode = candidate;
+      document.getElementById("hostRoomCode").textContent = roomCode;
+      document.getElementById("hostStatus").textContent = "Waiting for players to join...";
+    });
+    p.on("error", err => {
+      if (err.type === "unavailable-id") { p.destroy(); tryCreatePeer(); }
+      else document.getElementById("hostStatus").textContent = "Connection error: " + err.type;
+    });
+    p.on("connection", conn => {
+      conn.on("open", () => {
+        const order = pendingMode === 1 ? [0, 1] : [0, 2, 1, 3];
+        const openSlot = order.find(s => !roster[s].occupied);
+        if (openSlot === undefined || gameStarted) {
+          conn.send({ type: "full" });
+          setTimeout(() => conn.close(), 200);
+          return;
+        }
+        hostConns[openSlot] = conn;
+        roster[openSlot].occupied = true;
+        remoteInputs[openSlot] = { l: false, r: false, h: false, pulse: { jump: false, slide: false, set: false, spike: false } };
+        conn.send({ type: "welcome", slot: openSlot, mode: pendingMode, code: roomCode, roster });
+        broadcastLobby();
+        updateHostLobbyUI();
+      });
+      conn.on("data", data => {
+        const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
+        const r = remoteInputs[slot];
+        if (isNaN(slot) || !data || !r || data.type !== "input") return;
+        r.l = !!data.l; r.r = !!data.r; r.h = !!data.h;
+        if (data.pulse) for (const k of ["jump", "slide", "set", "spike"]) if (data.pulse[k]) r.pulse[k] = true;
+      });
+      const drop = () => {
+        const slot = Number(Object.keys(hostConns).find(k => hostConns[k] === conn));
+        if (isNaN(slot)) return;
+        delete hostConns[slot]; delete remoteInputs[slot];
+        if (roster[slot]) roster[slot].occupied = false;
+        broadcastLobby(); updateHostLobbyUI();
+        if (gameStarted) document.getElementById("onlineBanner").textContent = `ROOM ${roomCode} · PLAYER ${slot + 1} DISCONNECTED`;
+      };
+      conn.on("close", drop);
+      conn.on("error", drop);
+    });
+  }
+  tryCreatePeer();
 }
 
-tryCreatePeer();
-}
-
+// Flashcards: quiz yourself, then check the answer.
 function broadcastLobby() {
-Object.values(hostConns).forEach(c => {
-if (c.open) c.send({ type: "lobby", mode: pendingMode, code: roomCode, roster });
-});
+  Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "lobby", mode: pendingMode, code: roomCode, roster }); });
 }
 
+// Summary of this topic for exam revision.
 function updateHostLobbyUI() {
-renderRoster("hostRoster");
-const connectedCount = roster.filter(r => r.occupied).length;
-const continueBtn = document.getElementById("hostContinueBtn");
-const statusEl = document.getElementById("hostStatus");
-if (connectedCount >= 2) {
-continueBtn.disabled = false;
-statusEl.textContent = `${connectedCount}/${roster.length} players ready!`;
-} else {
-continueBtn.disabled = true;
-statusEl.textContent = "Waiting for at least 1 opponent to join...";
-}
+  renderRoster("hostRoster");
+  const n = roster.filter(r => r.occupied).length;
+  document.getElementById("hostContinueBtn").disabled = n < 2;
+  document.getElementById("hostStatus").textContent = n >= 2 ? `${n}/${roster.length} players ready!` : "Waiting for at least 1 opponent to join...";
 }
 
+// Practice questions - attempt before reading the solution.
 function openJoinStep() {
-cleanupNetwork();
-document.getElementById("joinCodeInput").value = "";
-document.getElementById("joinStatus").textContent = "";
-document.getElementById("joinSubmitBtn").disabled = false;
-showStep("joinStep");
-setTimeout(() => document.getElementById("joinCodeInput").focus(), 50);
+  cleanupNetwork();
+  document.getElementById("joinCodeInput").value = "";
+  document.getElementById("joinStatus").textContent = "";
+  document.getElementById("joinSubmitBtn").disabled = false;
+  showStep("joinStep");
+  setTimeout(() => document.getElementById("joinCodeInput").focus(), 50);
 }
 
+// Highlight the main idea of each section in your notes.
 function joinRoom() {
-const raw = document.getElementById("joinCodeInput").value.trim().toUpperCase();
-const statusEl = document.getElementById("joinStatus");
-if (raw.length !== 4) {
-statusEl.textContent = "Please enter a 4-letter room code.";
-return;
-}
-if (typeof Peer === "undefined") {
-statusEl.textContent = "PeerJS failed to load. Check internet connection.";
-return;
-}
+  const raw = document.getElementById("joinCodeInput").value.trim().toUpperCase();
+  const statusEl = document.getElementById("joinStatus");
+  if (raw.length !== 4) { statusEl.textContent = "Please enter a 4-letter room code."; return; }
+  if (typeof Peer === "undefined") { statusEl.textContent = "PeerJS failed to load. Check internet connection."; return; }
 
-cleanupNetwork();
-netMode = "guest";
-roomCode = raw;
-document.getElementById("joinSubmitBtn").disabled = true;
-statusEl.textContent = `Connecting to room ${raw}...`;
+  cleanupNetwork();
+  netMode = "guest"; roomCode = raw;
+  document.getElementById("joinSubmitBtn").disabled = true;
+  statusEl.textContent = `Connecting to room ${raw}...`;
 
-const p = new Peer();
-peer = p;
+  const p = new Peer();
+  peer = p;
+  let welcomed = false;
+  const connectTimeout = setTimeout(() => {
+    if (!welcomed) {
+      statusEl.textContent = "Could not reach room. Check code and try again.";
+      document.getElementById("joinSubmitBtn").disabled = false;
+      cleanupNetwork();
+    }
+  }, 9000);
 
-const connectTimeout = setTimeout(() => {
-if (!guestConn || !guestConn.open) {
-statusEl.textContent = "Could not reach room. Check code and try again.";
-document.getElementById("joinSubmitBtn").disabled = false;
-cleanupNetwork();
-}
-}, 8000);
-
-p.on("open", () => {
-const conn = p.connect(PEER_PREFIX + raw, { reliable: true });
-guestConn = conn;
-
-conn.on("open", () => {
-clearTimeout(connectTimeout);
-document.getElementById("joinSubmitBtn").disabled = false;
-});
-
-conn.on("data", data => {
-if (!data) return;
-if (data.type === "full") {
-clearTimeout(connectTimeout);
-cleanupNetwork();
-showStep("joinStep");
-document.getElementById("joinStatus").textContent = "Room is full or match already started.";
-document.getElementById("joinSubmitBtn").disabled = false;
-} else if (data.type === "welcome") {
-mySlot = data.slot;
-pendingMode = data.mode;
-roster = data.roster;
-document.getElementById("guestRoomCode").textContent = data.code;
-renderRoster("guestRoster");
-showStep("guestLobbyStep");
-} else if (data.type === "lobby") {
-pendingMode = data.mode;
-roster = data.roster;
-renderRoster("guestRoster");
-} else if (data.type === "start") {
-startGuestGame(data.mode, data.sport);
-} else if (data.type === "restart") {
-score1 = 0; score2 = 0; gameOver = false; particles = [];
-updateScore();
-} else if (data.type === "menu") {
-gameStarted = false;
-document.getElementById("gameArea").style.display = "none";
-document.getElementById("menu").style.display = "flex";
-showStep("guestLobbyStep");
-} else if (data.type === "state") {
-applyNetworkState(data);
-}
-});
-
-conn.on("close", () => {
-clearTimeout(connectTimeout);
-if (gameStarted) {
-alert("Host disconnected from the room.");
-backToMenu();
-} else {
-cleanupNetwork();
-showStep("joinStep");
-document.getElementById("joinStatus").textContent = "Disconnected from host.";
-}
-});
-});
-
-p.on("error", err => {
-clearTimeout(connectTimeout);
-document.getElementById("joinSubmitBtn").disabled = false;
-statusEl.textContent = err.type === "peer-unavailable"
-? "Room not found. Double-check the 4-letter code."
-: "Network error: " + err.type;
-cleanupNetwork();
-});
+  p.on("open", () => {
+    const conn = p.connect(PEER_PREFIX + raw, { reliable: true });
+    guestConn = conn;
+    conn.on("data", data => {
+      if (!data) return;
+      if (data.type === "full") {
+        clearTimeout(connectTimeout); cleanupNetwork(); showStep("joinStep");
+        statusEl.textContent = "Room is full or match already started.";
+        document.getElementById("joinSubmitBtn").disabled = false;
+      } else if (data.type === "welcome") {
+        welcomed = true; clearTimeout(connectTimeout);
+        mySlot = data.slot; pendingMode = data.mode; roster = data.roster;
+        document.getElementById("guestRoomCode").textContent = data.code;
+        renderRoster("guestRoster");
+        showStep("guestLobbyStep");
+      } else if (data.type === "lobby") {
+        pendingMode = data.mode; roster = data.roster; renderRoster("guestRoster");
+      } else if (data.type === "start") {
+        startGuestGame(data.mode, data.sport);
+      } else if (data.type === "restart") {
+        score1 = 0; score2 = 0; gameOver = false; particles = []; updateScore();
+      } else if (data.type === "state") {
+        applyNetworkState(data);
+      }
+    });
+    conn.on("close", () => {
+      clearTimeout(connectTimeout);
+      if (gameStarted) { alert("Host disconnected from the room."); backToMenu(); }
+      else { cleanupNetwork(); showStep("joinStep"); statusEl.textContent = "Disconnected from host."; }
+    });
+  });
+  p.on("error", err => {
+    clearTimeout(connectTimeout);
+    document.getElementById("joinSubmitBtn").disabled = false;
+    statusEl.textContent = err.type === "peer-unavailable" ? "Room not found. Double-check the 4-letter code." : "Network error: " + err.type;
+    cleanupNetwork();
+  });
 }
 
+// Revision tip: repeat difficult topics at spaced intervals.
 function queueGuestPulse(key) {
-if (key === "w" || key === "arrowup") guestPulse.jump = true;
-if (key === "s" || key === "arrowdown") guestPulse.slide = true;
-if (key === "e" || key === "shift") guestPulse.set = true;
-if (key === "q" || key === "enter") guestPulse.spike = true;
-sendGuestInput();
+  if (key === "w" || key === "arrowup") guestPulse.jump = true;
+  if (key === "s" || key === "arrowdown") guestPulse.slide = true;
+  if (key === "e" || key === "shift") guestPulse.set = true;
+  if (key === "q" || key === "enter") guestPulse.spike = true;
+  sendGuestInput();
 }
 
+// Glossary: definitions to memorise for the test.
 function sendGuestInput() {
-if (netMode !== "guest" || !guestConn || !guestConn.open || !gameStarted) return;
-const left = !!(keys["a"] || keys["arrowleft"]);
-const right = !!(keys["d"] || keys["arrowright"]);
-guestConn.send({
-type: "input",
-keys: { left, right },
-pulse: { ...guestPulse }
-});
-guestPulse.jump = false;
-guestPulse.slide = false;
-guestPulse.set = false;
-guestPulse.spike = false;
+  if (netMode !== "guest" || !guestConn || !guestConn.open || !gameStarted) return;
+  guestConn.send({
+    type: "input",
+    l: !!(keys["a"] || keys["arrowleft"]),
+    r: !!(keys["d"] || keys["arrowright"]),
+    h: !!(keys["q"] || keys["enter"]),
+    pulse: guestPulse
+  });
+  guestPulse = { jump: false, slide: false, set: false, spike: false };
 }
 
-function applyHostNetworkInputs() {
-if (netMode !== "host") return;
-
-// Allow Host (Player 1) to use either WASD+QE or Arrows+Shift/Enter
-if (keys["arrowleft"]) keys["a"] = true;
-if (keys["arrowright"]) keys["d"] = true;
-if (pressed["arrowup"]) pressed["w"] = true;
-if (pressed["arrowdown"]) pressed["s"] = true;
-if (pressed["shift"]) pressed["e"] = true;
-if (pressed["enter"]) pressed["q"] = true;
-
-for (const slotStr in remoteInputs) {
-const slot = Number(slotStr);
-const p = players[slot];
-const inp = remoteInputs[slot];
-if (!p || !inp) continue;
-
-keys[p.left] = inp.left;
-keys[p.right] = inp.right;
-if (inp.pulse.jump) pressed[p.jump] = true;
-if (inp.pulse.slide) pressed[p.slide] = true;
-if (inp.pulse.set) pressed[p.set] = true;
-if (inp.pulse.spike) pressed[p.spike] = true;
-
-inp.pulse.jump = false;
-inp.pulse.slide = false;
-inp.pulse.set = false;
-inp.pulse.spike = false;
-}
-}
-
+// Study schedule: break the reading into short sessions.
 function broadcastGameState() {
-if (netMode !== "host" || !gameStarted) return;
-const conns = Object.values(hostConns).filter(c => c.open);
-if (conns.length === 0) return;
-
-const r1 = n => Math.round(n * 10) / 10;
-const packet = {
-type: "state",
-s1: score1,
-s2: score2,
-go: gameOver,
-p: players.map(pl => ({
-x: r1(pl.x), y: r1(pl.y), vx: r1(pl.vx), vy: r1(pl.vy),
-st: pl.slideTimer, ef: pl.effect, et: pl.effectTimer
-})),
-b: { x: r1(ball.x), y: r1(ball.y), vx: r1(ball.vx), vy: r1(ball.vy) },
-pt: particles.slice(0, 30).map(pt => ({ x: r1(pt.x), y: r1(pt.y), l: pt.life, c: pt.color }))
-};
-conns.forEach(c => c.send(packet));
+  if (netMode !== "host" || !gameStarted) return;
+  const conns = Object.values(hostConns).filter(canSend);
+  if (!conns.length) return;
+  const r1 = n => Math.round(n * 10) / 10;
+  const packet = {
+    type: "state", s1: score1, s2: score2, go: gameOver, sv: serveInProgress ? 1 : 0,
+    p: players.map(pl => ({ x: r1(pl.x), y: r1(pl.y), vx: r1(pl.vx), vy: r1(pl.vy), st: pl.slideTimer, ef: pl.effect, et: pl.effectTimer, ch: r1(pl.charge), cg: pl.charging ? 1 : 0 })),
+    b: { x: r1(ball.x), y: r1(ball.y), vx: r1(ball.vx), vy: r1(ball.vy), sl: ball.slice ? 1 : 0, bn: ball.bnc || 0 },
+    pt: particles.slice(0, 30).map(pt => ({ x: r1(pt.x), y: r1(pt.y), l: pt.life, c: pt.color }))
+  };
+  conns.forEach(c => c.send(packet));
 }
 
-function applyNetworkState(data) {
-if (score1 !== data.s1 || score2 !== data.s2) {
-score1 = data.s1;
-score2 = data.s2;
-updateScore();
-}
-gameOver = data.go;
-if (data.p && players.length === data.p.length) {
-data.p.forEach((sp, i) => {
-players[i].x = sp.x;
-players[i].y = sp.y;
-players[i].vx = sp.vx;
-players[i].vy = sp.vy;
-players[i].slideTimer = sp.st;
-players[i].effect = sp.ef;
-players[i].effectTimer = sp.et;
-});
-}
-if (data.b) {
-ball.x = data.b.x;
-ball.y = data.b.y;
-ball.vx = data.b.vx;
-ball.vy = data.b.vy;
-}
-if (data.pt) {
-particles = data.pt.map(pt => ({ x: pt.x, y: pt.y, vx: 0, vy: 0, life: pt.l, color: pt.c }));
-}
+// Mnemonic to help remember this section.
+function applyNetworkState(d) {
+  if (score1 !== d.s1 || score2 !== d.s2) { score1 = d.s1; score2 = d.s2; updateScore(); }
+  gameOver = d.go; serveInProgress = !!d.sv;
+  if (d.p && players.length === d.p.length) {
+    d.p.forEach((s, i) => {
+      const p = players[i];
+      p.x = s.x; p.y = s.y; p.vx = s.vx; p.vy = s.vy;
+      p.slideTimer = s.st; p.effect = s.ef; p.effectTimer = s.et; p.charge = s.ch; p.charging = !!s.cg;
+    });
+  }
+  if (d.b) { ball.x = d.b.x; ball.y = d.b.y; ball.vx = d.b.vx; ball.vy = d.b.vy; ball.slice = !!d.b.sl; ball.bnc = d.b.bn; }
+  if (d.pt) particles = d.pt.map(pt => ({ x: pt.x, y: pt.y, vx: 0, vy: 0, life: pt.l, color: pt.c }));
 }
 
-// ==========================================
-// PLAYER CREATION
-// ==========================================
-function createPlayer(x, side, color, c) {
-return {
-x, y: ground - 60, vx: 0, vy: 0, color,
-left: c.left, right: c.right, jump: c.jump, slide: c.slide, set: c.set, spike: c.spike,
-side, radius: 25,
-slideTimer: 0, setCooldown: 0, spikeCooldown: 0,
-effect: "", effectTimer: 0
-};
+// Past-paper style question for self-assessment.
+function createPlayer(x, side, color, map) {
+  return {
+    x, y: ground - 60, vx: 0, vy: 0, color, map, in: newInput(), isBot: false,
+    side, radius: 25, slideTimer: 0, setCooldown: 0, spikeCooldown: 0,
+    effect: "", effectTimer: 0, charge: 0, charging: false
+  };
 }
 
 let players = [];
 
+// Cross-reference with the textbook chapter.
 function createPlayers() {
-players = [];
-
-players.push(createPlayer(gameMode === 1 ? 180 : 150, 0, "#248bff",
-{ left: "a", right: "d", jump: "w", slide: "s", set: "e", spike: "q" }));
-
-if (gameMode === 2) {
-players.push(createPlayer(300, 0, "#55b5ff",
-{ left: "j", right: "l", jump: "i", slide: "k", set: "o", spike: "u" }));
+  players = [];
+  const m = (l, r, j, s, e, q) => ({ left: [l], right: [r], jump: [j], slide: [s], set: [e], spike: [q] });
+  players.push(createPlayer(gameMode === 1 ? 180 : 150, 0, "#248bff", m("a","d","w","s","e","q")));
+  if (gameMode === 2) players.push(createPlayer(300, 0, "#55b5ff", m("j","l","i","k","o","u")));
+  players.push(createPlayer(gameMode === 1 ? 720 : 600, 1, "#ff4b55", m("arrowleft","arrowright","arrowup","arrowdown","shift","enter")));
+  if (gameMode === 2) players.push(createPlayer(750, 1, "#ff858a", m("numpad1","numpad3","numpad5","numpad2","numpad6","numpad4")));
+  if (netMode === "host") players[0].map = HOST_MAP;
+  playerTouchingBall = players.map(() => false);
 }
 
-players.push(createPlayer(gameMode === 1 ? 720 : 600, 1, "#ff4b55",
-{ left: "arrowleft", right: "arrowright", jump: "arrowup", slide: "arrowdown", set: "shift", spike: "enter" }));
-
-if (gameMode === 2) {
-players.push(createPlayer(750, 1, "#ff858a",
-{ left: "numpad1", right: "numpad3", jump: "numpad5", slide: "numpad2", set: "numpad6", spike: "numpad4" }));
-}
-
-playerTouchingBall = players.map(() => false);
-}
-
-let ball = { x: 300, y: 180, vx: 4, vy: 1, r: 15 };
+let ball = { x: 300, y: 180, vx: 4, vy: 1, r: 15, bnc: 0, slice: false };
 let particles = [];
 
-// START GAME
 let pendingMode = 1, sport = "volleyball";
 const THEMES = {
-volleyball: { bg: "linear-gradient(#9fd0d4 72%, #e2b977 72%)", floor: "#e2b977" },
-badminton: { bg: "linear-gradient(#7d9a86 72%, #b57a43 72%)", floor: "#b57a43" },
-tennis: { bg: "linear-gradient(#b9d3c8 72%, #c4623a 72%)", floor: "#c4623a" }
+  volleyball: { bg: "linear-gradient(#9fd0d4 72%, #e2b977 72%)", floor: "#e2b977" },
+  badminton:  { bg: "linear-gradient(#7d9a86 72%, #b57a43 72%)", floor: "#b57a43" },
+  tennis:     { bg: "linear-gradient(#b9d3c8 72%, #c4623a 72%)", floor: "#c4623a" }
 };
-const TITLES = { volleyball: "Volleyball Duel", badminton: "Badminton Duel", tennis: "Tennis Duel" };
+const TITLES = { volleyball: "Study Guide", badminton: "Study Guide", tennis: "Study Guide" };
 
-// ANIMATED MENU BACKGROUND
 const mbg = document.getElementById("menuBg");
 const mctx = mbg.getContext("2d");
+// Group study: compare answers with classmates.
 function sizeMenuBg() { mbg.width = innerWidth; mbg.height = innerHeight; }
 sizeMenuBg();
 addEventListener("resize", sizeMenuBg);
 
 const mItems = [];
 for (let i = 0; i < 22; i++) {
-mItems.push({
-kind: ["volley", "tennis", "birdie", "racquet"][i % 4],
-x: Math.random() * innerWidth, y: Math.random() * innerHeight,
-vx: (Math.random() - 0.5) * 1.4, vy: (Math.random() - 0.5) * 1.4,
-r: 18 + Math.random() * 24,
-a: Math.random() * 6.28, va: (Math.random() - 0.5) * 0.03
-});
+  mItems.push({ kind: ["volley","tennis","birdie","racquet"][i % 4], x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+    vx: (Math.random() - 0.5) * 1.4, vy: (Math.random() - 0.5) * 1.4, r: 18 + Math.random() * 24, a: Math.random() * 6.28, va: (Math.random() - 0.5) * 0.03 });
 }
 
+// Review the key terms before moving on to the next chapter.
 function drawMenuItem(it) {
-mctx.save();
-mctx.translate(it.x, it.y);
-mctx.rotate(it.a);
-const s = it.r / 15;
-mctx.scale(s, s);
-mctx.lineWidth = 2;
-mctx.lineCap = "round";
-mctx.strokeStyle = "#1d1d1b";
-
-if (it.kind === "volley") {
-mctx.fillStyle = "#f4ecd8";
-mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
-mctx.beginPath(); mctx.arc(0, 0, 10, 0, Math.PI * 2);
-mctx.moveTo(-15, 0); mctx.lineTo(15, 0); mctx.moveTo(0, -15); mctx.lineTo(0, 15);
-mctx.stroke();
-} else if (it.kind === "tennis") {
-mctx.fillStyle = "#c8f03c";
-mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
-mctx.strokeStyle = "#ffffff";
-mctx.beginPath(); mctx.arc(-17, 0, 14, -0.9, 0.9); mctx.stroke();
-mctx.beginPath(); mctx.arc(17, 0, 14, Math.PI - 0.9, Math.PI + 0.9); mctx.stroke();
-} else if (it.kind === "birdie") {
-mctx.fillStyle = "#ffffff";
-mctx.beginPath(); mctx.moveTo(4, -5); mctx.lineTo(-17, -13); mctx.lineTo(-17, 13); mctx.lineTo(4, 5);
-mctx.closePath(); mctx.fill(); mctx.stroke();
-mctx.fillStyle = "#e8c27a";
-mctx.beginPath(); mctx.arc(8, 0, 7, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
-} else {
-mctx.lineWidth = 3.5;
-mctx.beginPath(); mctx.moveTo(0, 26); mctx.lineTo(0, 10); mctx.stroke();
-mctx.lineWidth = 2.5;
-mctx.fillStyle = "rgba(255,255,255,0.3)";
-mctx.beginPath(); mctx.ellipse(0, -5, 11, 16, 0, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
-mctx.lineWidth = 1;
-mctx.beginPath();
-for (let x = -6; x <= 6; x += 4) { mctx.moveTo(x, -17); mctx.lineTo(x, 7); }
-for (let y = -14; y <= 4; y += 5) { mctx.moveTo(-9, y); mctx.lineTo(9, y); }
-mctx.stroke();
-}
-mctx.restore();
+  mctx.save(); mctx.translate(it.x, it.y); mctx.rotate(it.a);
+  const s = it.r / 15; mctx.scale(s, s);
+  mctx.lineWidth = 2; mctx.lineCap = "round"; mctx.strokeStyle = "#1d1d1b";
+  if (it.kind === "volley") {
+    mctx.fillStyle = "#f4ecd8";
+    mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+    mctx.beginPath(); mctx.arc(0, 0, 10, 0, Math.PI * 2); mctx.moveTo(-15, 0); mctx.lineTo(15, 0); mctx.moveTo(0, -15); mctx.lineTo(0, 15); mctx.stroke();
+  } else if (it.kind === "tennis") {
+    mctx.fillStyle = "#c8f03c";
+    mctx.beginPath(); mctx.arc(0, 0, 15, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+    mctx.strokeStyle = "#ffffff";
+    mctx.beginPath(); mctx.arc(-17, 0, 14, -0.9, 0.9); mctx.stroke();
+    mctx.beginPath(); mctx.arc(17, 0, 14, Math.PI - 0.9, Math.PI + 0.9); mctx.stroke();
+  } else if (it.kind === "birdie") {
+    mctx.fillStyle = "#ffffff";
+    mctx.beginPath(); mctx.moveTo(4, -5); mctx.lineTo(-17, -13); mctx.lineTo(-17, 13); mctx.lineTo(4, 5); mctx.closePath(); mctx.fill(); mctx.stroke();
+    mctx.fillStyle = "#e8c27a";
+    mctx.beginPath(); mctx.arc(8, 0, 7, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+  } else {
+    mctx.lineWidth = 3.5; mctx.beginPath(); mctx.moveTo(0, 26); mctx.lineTo(0, 10); mctx.stroke();
+    mctx.lineWidth = 2.5; mctx.fillStyle = "rgba(255,255,255,0.3)";
+    mctx.beginPath(); mctx.ellipse(0, -5, 11, 16, 0, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
+    mctx.lineWidth = 1; mctx.beginPath();
+    for (let x = -6; x <= 6; x += 4) { mctx.moveTo(x, -17); mctx.lineTo(x, 7); }
+    for (let y = -14; y <= 4; y += 5) { mctx.moveTo(-9, y); mctx.lineTo(9, y); }
+    mctx.stroke();
+  }
+  mctx.restore();
 }
 
+// Flashcards: quiz yourself, then check the answer.
 function menuBgFrame(t) {
-if (document.getElementById("menu").style.display !== "none") {
-const w = mbg.width, h = mbg.height;
-mctx.fillStyle = "#2b6f73";
-mctx.fillRect(0, 0, w, h);
-
-mctx.fillStyle = "#327a7e";
-const off = (t * 0.03) % 120;
-for (let x = -h + off; x < w; x += 120) {
-mctx.beginPath();
-mctx.moveTo(x, 0); mctx.lineTo(x + 60, 0);
-mctx.lineTo(x + 60 + h, h); mctx.lineTo(x + h, h);
-mctx.fill();
-}
-
-mItems.forEach(it => {
-it.x += it.vx; it.y += it.vy; it.a += it.va;
-if (it.x < -60) it.x = w + 60;
-if (it.x > w + 60) it.x = -60;
-if (it.y < -60) it.y = h + 60;
-if (it.y > h + 60) it.y = -60;
-drawMenuItem(it);
-});
-}
-requestAnimationFrame(menuBgFrame);
+  if (document.getElementById("menu").style.display !== "none") {
+    const w = mbg.width, h = mbg.height;
+    mctx.fillStyle = "#2b6f73"; mctx.fillRect(0, 0, w, h);
+    mctx.fillStyle = "#327a7e";
+    const off = (t * 0.03) % 120;
+    for (let x = -h + off; x < w; x += 120) {
+      mctx.beginPath(); mctx.moveTo(x, 0); mctx.lineTo(x + 60, 0); mctx.lineTo(x + 60 + h, h); mctx.lineTo(x + h, h); mctx.fill();
+    }
+    mItems.forEach(it => {
+      it.x += it.vx; it.y += it.vy; it.a += it.va;
+      if (it.x < -60) it.x = w + 60; if (it.x > w + 60) it.x = -60;
+      if (it.y < -60) it.y = h + 60; if (it.y > h + 60) it.y = -60;
+      drawMenuItem(it);
+    });
+  }
+  requestAnimationFrame(menuBgFrame);
 }
 requestAnimationFrame(menuBgFrame);
 
+// Summary of this topic for exam revision.
 function showStep(id) {
-["modeStep", "oppStep", "diffStep", "onlineStep", "hostLobbyStep", "joinStep", "guestLobbyStep", "sportStep"].forEach(s => {
-document.getElementById(s).style.display = s === id ? "block" : "none";
-});
+  ["modeStep","oppStep","diffStep","onlineStep","hostLobbyStep","joinStep","guestLobbyStep","sportStep"].forEach(s => {
+    document.getElementById(s).style.display = s === id ? "block" : "none";
+  });
 }
 
+// Practice questions - attempt before reading the solution.
 function chooseMode(m) {
-pendingMode = m;
-pendingBot = null;
-document.getElementById("oppPrompt").textContent = m === 1 ? "Who are you playing against?" : "How are you playing 2v2?";
-document.getElementById("sameKbBtn").textContent = m === 1 ? "Same Keyboard" : "Same Keyboard (4P)";
-document.getElementById("soloBotBtn").style.display = m === 1 ? "block" : "none";
-showStep("oppStep");
+  pendingMode = m; pendingBot = null;
+  document.getElementById("oppPrompt").textContent = m === 1 ? "Who are you playing against?" : "How are you playing 2v2?";
+  document.getElementById("sameKbBtn").textContent = m === 1 ? "Same Keyboard" : "Same Keyboard (4P)";
+  document.getElementById("soloBotBtn").style.display = m === 1 ? "block" : "none";
+  showStep("oppStep");
 }
-
+// Highlight the main idea of each section in your notes.
 function chooseOpponent(type) {
-pendingBot = null;
-if (type === "local") showStep("sportStep");
-else if (type === "online") showStep("onlineStep");
-else if (type === "bot") showStep("diffStep");
+  pendingBot = null;
+  if (type === "local") showStep("sportStep");
+  else if (type === "online") showStep("onlineStep");
+  else if (type === "bot") showStep("diffStep");
 }
-
-function chooseDifficulty(level) {
-pendingBot = level;
-showStep("sportStep");
-}
-
-function showModeStep() {
-cleanupNetwork();
-pendingBot = null;
-showStep("modeStep");
-}
-
+// Revision tip: repeat difficult topics at spaced intervals.
+function chooseDifficulty(level) { pendingBot = level; showStep("sportStep"); }
+// Glossary: definitions to memorise for the test.
+function showModeStep() { cleanupNetwork(); pendingBot = null; showStep("modeStep"); }
+// Study schedule: break the reading into short sessions.
 function backFromSport() {
-if (netMode === "host") showStep("hostLobbyStep");
-else if (pendingBot) showStep("diffStep");
-else showStep("oppStep");
+  if (netMode === "host") showStep("hostLobbyStep");
+  else if (pendingBot) showStep("diffStep");
+  else showStep("oppStep");
 }
-
+// Mnemonic to help remember this section.
 function hostOrLocalStart(s) {
-if (netMode === "host") {
-Object.values(hostConns).forEach(c => {
-if (c.open) c.send({ type: "start", mode: pendingMode, sport: s });
-});
-}
-startGame(pendingMode, s);
+  if (netMode === "host") Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "start", mode: pendingMode, sport: s }); });
+  startGame(pendingMode, s);
 }
 
+// Past-paper style question for self-assessment.
 function setupGameScreen(mode, s) {
-gameMode = mode;
-sport = s || "volleyball";
-document.getElementById("gameTitle").textContent = TITLES[sport];
-canvas.style.background = THEMES[sport].bg;
-document.getElementById("menu").style.display = "none";
-document.getElementById("gameArea").style.display = "block";
-score1 = 0; score2 = 0;
-gameOver = false;
-particles = [];
-createPlayers();
-updateScore();
-updateControls();
+  gameMode = mode;
+  sport = s || "volleyball";
+  netTop = SPORTS[sport].netTop;
+  document.getElementById("gameTitle").textContent = TITLES[sport];
+  canvas.style.background = THEMES[sport].bg;
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("gameArea").style.display = "block";
+  score1 = 0; score2 = 0; gameOver = false; particles = []; lastHitSide = -1;
+  createPlayers();
+  updateScore();
+  updateControls();
 }
 
+// Cross-reference with the textbook chapter.
 function startGame(mode, s) {
-setupGameScreen(mode, s);
-bot = (mode === 1 && pendingBot && !netMode)
-? { level: pendingBot, timer: 0, noise: 0, pred: { x: 720, t: 99 }, wait: BOT_LEVELS[pendingBot].serveDelay }
-: null;
-gameStarted = true;
-restartBall(Math.random() < 0.5 ? 0 : 1);
+  setupGameScreen(mode, s);
+  bot = (mode === 1 && pendingBot && !netMode)
+    ? { level: pendingBot, timer: 0, noise: 0, pred: { x: 720, t: 99 }, wait: BOT_LEVELS[pendingBot].serveDelay, chargeTarget: null, chargeTime: 0 }
+    : null;
+  if (bot) players[1].isBot = true;
+  gameStarted = true;
+  restartBall(Math.random() < 0.5 ? 0 : 1);
 }
 
+// Group study: compare answers with classmates.
 function startGuestGame(mode, s) {
-bot = null;
-setupGameScreen(mode, s);
-gameStarted = true;
+  bot = null;
+  setupGameScreen(mode, s);
+  gameStarted = true;
 }
 
-// CONTROL DISPLAY
+// Review the key terms before moving on to the next chapter.
 function updateControls() {
-const display = document.getElementById("controlsDisplay");
-const banner = document.getElementById("onlineBanner");
-const restartBtn = document.getElementById("restartBtn");
-const menuBtn = document.getElementById("menuBtn");
+  const display = document.getElementById("controlsDisplay");
+  const banner = document.getElementById("onlineBanner");
+  const restartBtn = document.getElementById("restartBtn");
+  const menuBtn = document.getElementById("menuBtn");
+  const S = SPORTS[sport];
+  const spk = sport === "badminton" ? "Clear/Smash (hold to charge)" : S.spikeName;
+  const ab = (sl, se, sk) => `<span class="abilities">Slide: ${sl} | ${S.setName}: ${se} | ${spk}: ${sk}</span>`;
+  const tip = sport === "badminton" ? "<br>Tap " + spk.split(" ")[0] + " = clear. Hold = charge. Under 50% is a clear, 50%+ is a smash (smash needs a jump)."
+    : sport === "tennis" ? "<br>Let the ball bounce once on your side (or hit it before). Two bounces = point for the other side."
+    : "";
 
-if (netMode) {
-const m = slotMeta(gameMode, mySlot);
-banner.style.display = "inline-block";
-banner.innerHTML = `ROOM: <span style="color:#c9501f">${roomCode}</span> · YOU ARE <span style="color:${m.color}">${m.label}</span>`;
-restartBtn.style.display = netMode === "host" ? "inline-block" : "none";
-menuBtn.textContent = "LEAVE ROOM";
-display.innerHTML = `
-<b style="color:${m.color}">YOUR CONTROLS (${m.label})</b><br>
-Move: A / D (or ← / →) | Jump: W (or ↑)<br>
-<span class="abilities">Slide: S / ↓ | Set: E / SHIFT | Spike: Q / ENTER</span>
-<br><br>
-First ${gameMode === 1 ? "player" : "team"} to 10 points wins!`;
-return;
+  if (netMode) {
+    const m = slotMeta(gameMode, mySlot);
+    banner.style.display = "inline-block";
+    banner.innerHTML = `ROOM: <span style="color:#c9501f">${roomCode}</span> · YOU ARE <span style="color:${m.color}">${m.label}</span>`;
+    restartBtn.style.display = netMode === "host" ? "inline-block" : "none";
+    menuBtn.textContent = "LEAVE ROOM";
+    display.innerHTML = `<b style="color:${m.color}">YOUR CONTROLS (${m.label})</b><br>Move: A / D (or ← / →) | Jump: W (or ↑)<br>${ab("S / ↓", "E / SHIFT", "Q / ENTER")}${tip}<br><br>First ${gameMode === 1 ? "player" : "team"} to 10 points wins!`;
+    return;
+  }
+
+  banner.style.display = "none";
+  restartBtn.style.display = "inline-block";
+  menuBtn.textContent = "MAIN MENU";
+
+  if (gameMode === 1) {
+    display.innerHTML = `<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>Move: A / D | Jump: W<br>${ab("S", "E", "Q")}<br><br>
+${bot ? '<b style="color:#ff4b55">BOT (RED) · ' + bot.level.toUpperCase() + '</b>' : '<b style="color:#ff4b55">PLAYER 2 (RED)</b><br>Move: ← / → | Jump: ↑<br>' + ab("↓", "SHIFT", "ENTER")}${tip}<br><br>First player to 10 points wins!`;
+  } else {
+    display.innerHTML = `<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>Move: A / D | Jump: W<br>${ab("S", "E", "Q")}<br><br>
+<b style="color:#55b5ff">PLAYER 2 (BLUE)</b><br>Move: J / L | Jump: I<br>${ab("K", "O", "U")}<br><br>
+<b style="color:#ff4b55">PLAYER 3 (RED)</b><br>Move: ← / → | Jump: ↑<br>${ab("↓", "SHIFT", "ENTER")}<br><br>
+<b style="color:#ff858a">PLAYER 4 (RED)</b><br>Move: NUMPAD 1 / 3 | Jump: NUMPAD 5<br>${ab("NUMPAD 2", "NUMPAD 6", "NUMPAD 4")}${tip}<br><br>First team to 10 points wins!`;
+  }
 }
 
-banner.style.display = "none";
-restartBtn.style.display = "inline-block";
-menuBtn.textContent = "MAIN MENU";
-
-if (gameMode === 1) {
-display.innerHTML = `
-<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>
-Move: A / D | Jump: W<br>
-<span class="abilities">Slide: S | Set: E | Spike: Q</span>
-<br><br>
-${bot ? '<b style="color:#ff4b55">BOT (RED) · ' + bot.level.toUpperCase() + '</b>' : '<b style="color:#ff4b55">PLAYER 2 (RED)</b><br>Move: ← / → | Jump: ↑<br><span class="abilities">Slide: ↓ | Set: SHIFT | Spike: ENTER</span>'}
-<br><br>
-First player to 10 points wins!`;
-} else {
-display.innerHTML = `
-<b style="color:#248bff">PLAYER 1 (BLUE)</b><br>
-Move: A / D | Jump: W<br>
-<span class="abilities">Slide: S | Set: E | Spike: Q</span>
-<br><br>
-<b style="color:#55b5ff">PLAYER 2 (BLUE)</b><br>
-Move: J / L | Jump: I<br>
-<span class="abilities">Slide: K | Set: O | Spike: U</span>
-<br><br>
-<b style="color:#ff4b55">PLAYER 3 (RED)</b><br>
-Move: ← / → | Jump: ↑<br>
-<span class="abilities">Slide: ↓ | Set: SHIFT | Spike: ENTER</span>
-<br><br>
-<b style="color:#ff858a">PLAYER 4 (RED)</b><br>
-Move: NUMPAD 1 / 3 | Jump: NUMPAD 5<br>
-<span class="abilities">Slide: NUMPAD 2 | Set: NUMPAD 6 | Spike: NUMPAD 4</span>
-<br><br>
-First team to 10 points wins!`;
-}
-}
-
-// BOT (solo mode: controls the red player in 1v1)
 let bot = null;
 let pendingBot = null;
 
 const BOT_LEVELS = {
-easy: { react: 40, err: 110, move: 0.5, setRange: 80, setProb: 0.3, spike: 0, slide: 0, ready: 770, serveDelay: 110 },
-medium: { react: 14, err: 40, move: 0.85, setRange: 98, setProb: 0.7, spike: 0.3, slide: 0.3, ready: 720, serveDelay: 70 },
-hard: { react: 2, err: 5, move: 1, setRange: 105, setProb: 1, spike: 0.9, slide: 1, ready: 670, serveDelay: 40 }
+  easy:   { react: 40, err: 110, move: 0.5,  setRange: 80,  setProb: 0.3, spike: 0,   slide: 0,   drive: 0.1,  power: [0.5, 0.7], ready: 770, serveDelay: 110 },
+  medium: { react: 14, err: 40,  move: 0.85, setRange: 98,  setProb: 0.7, spike: 0.3, slide: 0.3, drive: 0.35, power: [0.5, 0.8], ready: 720, serveDelay: 70 },
+  hard:   { react: 2,  err: 5,   move: 1,    setRange: 105, setProb: 1,   spike: 0.9, slide: 1,   drive: 0.6,  power: [0.7, 1],   ready: 670, serveDelay: 40 }
 };
 
+// Flashcards: quiz yourself, then check the answer.
 function predictLanding() {
-let x = ball.x, y = ball.y, vx = ball.vx, vy = ball.vy;
-const r = ball.r;
-for (let i = 0; i < 400; i++) {
-vy += 0.25; x += vx; y += vy;
-if (x < r) { x = r; vx *= -0.85; }
-if (x > WIDTH - r) { x = WIDTH - r; vx *= -0.85; }
-if (y < r) { y = r; vy *= -0.85; }
-if (Math.abs(x - netX) < r + 5 && y + r > 315) {
-if (y < 315 && vy > 0) { y = 315 - r; vy *= -0.6; }
-else { x = x < netX ? netX - 5 - r : netX + 5 + r; vx *= -0.8; }
-}
-vx *= 0.999;
-if (y + r >= ground) return { x, t: i };
-}
-return { x, t: 400 };
+  const S = SPORTS[sport];
+  let x = ball.x, y = ball.y, vx = ball.vx, vy = ball.vy;
+  const r = ball.r;
+  for (let i = 0; i < 400; i++) {
+    vy += S.g;
+    if (S.k) { const f = S.k * Math.hypot(vx, vy); vx -= vx * f; vy -= vy * f; }
+    x += vx; y += vy;
+    if (x < r) { x = r; vx *= -0.85; }
+    if (x > WIDTH - r) { x = WIDTH - r; vx *= -0.85; }
+    if (y < r) { y = r; vy *= -0.85; }
+    if (Math.abs(x - netX) < r + 5 && y + r > netTop) {
+      if (y < netTop && vy > 0) { y = netTop - r; vy *= -0.6; }
+      else { x = x < netX ? netX - 5 - r : netX + 5 + r; vx *= -0.8; }
+    }
+    if (!S.k) vx *= 0.999;
+    if (y + r >= ground) return { x, t: i };
+  }
+  return { x, t: 400 };
 }
 
+// Summary of this topic for exam revision.
 function botControl() {
-if (!bot) return;
-const p = players[1];
-const L = BOT_LEVELS[bot.level];
+  if (!bot) return;
+  const p = players[1], n = p.in, L = BOT_LEVELS[bot.level];
+  n.left = n.right = n.jump = n.slide = n.set = n.spike = false;
 
-keys[p.left] = false; keys[p.right] = false;
-delete pressed[p.jump]; delete pressed[p.slide]; delete pressed[p.set]; delete pressed[p.spike];
+  const grounded = p.y >= ground - 60;
+  const serving = serveInProgress && !serveHit && servingSide === p.side;
+  const waitingOnServe = serveInProgress && !serveHit && servingSide !== p.side;
+  const afterOwnServe = serveInProgress && serveHit && servingSide === p.side;
 
-const grounded = p.y >= ground - 60;
-const serving = serveInProgress && !serveHit && servingSide === p.side;
-const waitingOnServe = serveInProgress && !serveHit && servingSide !== p.side;
-const afterOwnServe = serveInProgress && serveHit && servingSide === p.side;
+  let target = L.ready, pr = null, mySide = false;
 
-let target = L.ready;
-let pr = null, mySide = false;
+  if (serving) {
+    target = ball.x;
+    if (bot.wait > 0) bot.wait--;
+    else if (Math.abs(p.x - ball.x) < 10 && grounded) n.jump = true;
+  } else {
+    bot.wait = L.serveDelay;
+    if (!waitingOnServe && !afterOwnServe) {
+      if (--bot.timer <= 0) { bot.timer = L.react; bot.pred = predictLanding(); bot.noise = (Math.random() * 2 - 1) * L.err; }
+      pr = bot.pred;
+      mySide = ball.x > netX || pr.x > netX;
+      if (mySide) {
+        const near = ball.x > netX && Math.abs(ball.x - p.x) < 110;
+        target = Math.max(netX + 40, near ? ball.x + 12 + bot.noise * 0.3 : pr.x + 18 + bot.noise);
+      }
 
-if (serving) {
-target = ball.x;
-if (bot.wait > 0) bot.wait--;
-else if (Math.abs(p.x - ball.x) < 10 && grounded) pressed[p.jump] = true;
-} else {
-bot.wait = L.serveDelay;
+      const receivingOk = serveHit && sport !== "volleyball" && servingSide !== p.side;
+      const live = ball.x >= netX && p.slideTimer === 0 && (!serveInProgress || receivingOk);
+      const d = Math.hypot(ball.x - p.x, ball.y - (p.y - 10));
+      const air = p.y < ground - 62;
+      const canSet = d < L.setRange && ball.vy > -3 && Math.random() < L.setProb;
 
-if (!waitingOnServe && !afterOwnServe) {
-if (--bot.timer <= 0) {
-bot.timer = L.react;
-bot.pred = predictLanding();
-bot.noise = (Math.random() * 2 - 1) * L.err;
+      if (bot.chargeTarget !== null) {
+        bot.chargeTime++;
+        const zone = air && d < 112 && ball.y < netTop - 10;
+        if (live && zone && p.charge >= bot.chargeTarget) bot.chargeTarget = null;
+        else if (bot.chargeTime > 70 || (grounded && bot.chargeTime > 12)) bot.chargeTarget = null;
+      } else if (live) {
+        if (sport === "tennis") {
+          if (canSet) { if (Math.random() < L.drive) n.spike = true; else n.set = true; }
+        } else if (sport === "badminton") {
+          if (grounded && L.spike > 0 && ball.x > 470 && ball.x < 640 && ball.y > 120 && ball.y < netTop + 20 && ball.vy > -1 &&
+              Math.abs(p.x - ball.x) < 50 && Math.random() < L.spike * 0.15) {
+            n.jump = true; n.spike = true;
+            bot.chargeTarget = L.power[0] + Math.random() * (L.power[1] - L.power[0]); bot.chargeTime = 0;
+          } else if (canSet) {
+            if (Math.random() < 0.5) n.set = true; else n.spike = true;
+          }
+        } else {
+          const zone = air && d < 112 && ball.x < 570 && ball.y < netTop + 25;
+          if (zone) { if (Math.random() < L.spike) n.spike = true; }
+          else if (canSet) n.set = true;
+          if (grounded && L.spike > 0 && ball.x > 480 && ball.x < 570 && ball.y > 110 && ball.y < 260 && ball.vy > -1 &&
+              Math.abs(p.x - ball.x) < 45 && Math.random() < L.spike * 0.12) n.jump = true;
+        }
+      }
+    }
+  }
+  n.spikeHeld = bot.chargeTarget !== null;
+
+  const dx = target - p.x;
+  if (Math.abs(dx) > 6 && Math.random() < L.move) { if (dx < 0) n.left = true; else n.right = true; }
+  if (mySide && pr && pr.t < 28 && Math.abs(dx) > 100 && grounded && p.slideTimer === 0 && Math.random() < L.slide * 0.25) n.slide = true;
 }
-pr = bot.pred;
-mySide = ball.x > netX || pr.x > netX;
 
-if (mySide) {
-const near = ball.x > netX && Math.abs(ball.x - p.x) < 110;
-target = near ? ball.x + 12 + bot.noise * 0.3 : pr.x + 18 + bot.noise;
-target = Math.max(netX + 40, target);
-}
-
-if (!serveInProgress && ball.x >= netX && p.slideTimer === 0) {
-const d = Math.hypot(ball.x - p.x, ball.y - (p.y - 10));
-const airborne = p.y < ground - 62;
-
-if (airborne && d < 112 && ball.x < 570 && ball.y < 245) {
-if (Math.random() < L.spike) pressed[p.spike] = true;
-} else if (d < L.setRange && ball.vy > -3 && Math.random() < L.setProb) {
-pressed[p.set] = true;
-}
-
-if (grounded && L.spike > 0 && ball.x > 480 && ball.x < 570 && ball.y > 150 && ball.y < 300 &&
-ball.vy > -1 && Math.abs(p.x - ball.x) < 45 && Math.random() < L.spike * 0.12) {
-pressed[p.jump] = true;
-}
-}
-}
-}
-
-const dx = target - p.x;
-if (Math.abs(dx) > 6 && Math.random() < L.move) {
-if (dx < 0) keys[p.left] = true; else keys[p.right] = true;
-}
-
-if (mySide && pr && pr.t < 28 && Math.abs(dx) > 100 && grounded && p.slideTimer === 0 && Math.random() < L.slide * 0.25) {
-pressed[p.slide] = true;
-}
-}
-
-// RETURN TO MENU
+// Practice questions - attempt before reading the solution.
 function backToMenu() {
-cleanupNetwork();
-gameStarted = false;
-document.getElementById("menu").style.display = "flex";
-showModeStep();
-document.getElementById("gameArea").style.display = "none";
-for (const key in keys) keys[key] = false;
-for (const key in pressed) delete pressed[key];
+  cleanupNetwork();
+  gameStarted = false;
+  document.getElementById("menu").style.display = "flex";
+  showModeStep();
+  document.getElementById("gameArea").style.display = "none";
+  for (const key in keys) keys[key] = false;
+  for (const key in pressed) delete pressed[key];
 }
 
-// RESTART BALL
+// Highlight the main idea of each section in your notes.
 function restartBall(scoringSide) {
-servingSide = scoringSide;
-serveHit = false;
-serveInProgress = true;
-servePlayerIndex = -1;
-playerTouchingBall = players.map(() => false);
-ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: 15 };
+  servingSide = scoringSide; serveHit = false; serveInProgress = true; servePlayerIndex = -1; lastHitSide = -1;
+  playerTouchingBall = players.map(() => false);
+  ball = { x: scoringSide === 0 ? 220 : 680, y: ground - 165, vx: 0, vy: 0, r: 15, bnc: 0, slice: false };
 }
 
-// RESTART GAME
+// Revision tip: repeat difficult topics at spaced intervals.
 function restart() {
-if (netMode === "guest") return;
-score1 = 0; score2 = 0;
-gameOver = false;
-particles = [];
-
-players.forEach((p, i) => {
-p.x = gameMode === 1 ? (i === 0 ? 180 : 720) : [150, 300, 600, 750][i];
-p.y = ground - 60;
-p.vx = 0; p.vy = 0;
-p.slideTimer = 0; p.setCooldown = 0; p.spikeCooldown = 0;
-p.effect = ""; p.effectTimer = 0;
-});
-
-restartBall(Math.random() < 0.5 ? 0 : 1);
-updateScore();
-
-if (netMode === "host") {
-Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "restart" }); });
-}
+  if (netMode === "guest") return;
+  score1 = 0; score2 = 0; gameOver = false; particles = [];
+  players.forEach((p, i) => {
+    p.x = gameMode === 1 ? (i === 0 ? 180 : 720) : [150, 300, 600, 750][i];
+    p.y = ground - 60; p.vx = 0; p.vy = 0;
+    p.slideTimer = 0; p.setCooldown = 0; p.spikeCooldown = 0;
+    p.effect = ""; p.effectTimer = 0; p.charge = 0; p.charging = false;
+  });
+  restartBall(Math.random() < 0.5 ? 0 : 1);
+  updateScore();
+  if (netMode === "host") Object.values(hostConns).forEach(c => { if (c.open) c.send({ type: "restart" }); });
 }
 
+// Glossary: definitions to memorise for the test.
 function updateScore() { scoreDisplay.textContent = score1 + " - " + score2; }
 
-// PARTICLES
+// Study schedule: break the reading into short sessions.
+function awardPoint(winnerSide) {
+  if (winnerSide === 0) score1++; else score2++;
+  updateScore();
+  if ((score1 >= 10 || score2 >= 10) && Math.abs(score1 - score2) >= 2) gameOver = true;
+  restartBall(winnerSide);
+}
+
+// Mnemonic to help remember this section.
 function createParticles(x, y, color, count = 12) {
-for (let i = 0; i < count; i++) {
-particles.push({ x, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, life: 30, color });
+  for (let i = 0; i < count; i++) particles.push({ x, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, life: 30, color });
 }
-}
+// Past-paper style question for self-assessment.
+function abilityEffect(p, name) { p.effect = name; p.effectTimer = 30; createParticles(p.x, p.y, p.color); }
 
-function abilityEffect(p, name) {
-p.effect = name;
-p.effectTimer = 30;
-createParticles(p.x, p.y, p.color);
-}
-
+// Cross-reference with the textbook chapter.
 function ballDistance(p) { return Math.hypot(ball.x - p.x, ball.y - (p.y - 10)); }
+// Group study: compare answers with classmates.
 function ballOnOwnSide(p) { return p.side === 0 ? ball.x <= netX : ball.x >= netX; }
 
-// SLIDE
+// Review the key terms before moving on to the next chapter.
+function canHit(p) {
+  if (!ballOnOwnSide(p)) return false;
+  if (serveInProgress) return serveHit && p.side !== servingSide && sport !== "volleyball";
+  return true;
+}
+
+// Flashcards: quiz yourself, then check the answer.
+function registerHit(p) {
+  lastHitSide = p.side; ball.bnc = 0; ball.slice = false;
+  if (serveInProgress && serveHit && p.side !== servingSide) serveInProgress = false;
+}
+
+// Summary of this topic for exam revision.
+function clearNetVy(speed, base, margin, halfG) {
+  const t = Math.abs(netX - ball.x) / speed || 1;
+  const need = (netTop - ball.r - margin - ball.y - halfG * t * t) / t;
+  return Math.min(base, Math.max(need, -9.5));
+}
+
+// Practice questions - attempt before reading the solution.
 function slide(p) {
-if (p.slideTimer > 0) return;
-p.slideTimer = 25;
-
-let direction = 0;
-if (keys[p.left]) direction = -1;
-if (keys[p.right]) direction = 1;
-if (direction === 0) direction = p.side === 0 ? 1 : -1;
-
-p.vx = direction * 11;
-p.vy = 0;
-abilityEffect(p, "SLIDE");
+  if (p.slideTimer > 0) return;
+  p.slideTimer = 25;
+  let dir = 0;
+  if (p.in.left) dir = -1;
+  if (p.in.right) dir = 1;
+  if (dir === 0) dir = p.side === 0 ? 1 : -1;
+  p.vx = dir * 11; p.vy = 0;
+  abilityEffect(p, "SLIDE");
 }
 
-// SET
+// Highlight the main idea of each section in your notes.
 function setBall(p) {
-if (p.setCooldown > 0) return;
-if (serveInProgress) return;
-if (!ballOnOwnSide(p)) return;
-if (ballDistance(p) > 105) return;
-
-p.setCooldown = 35;
-const direction = p.side === 0 ? 1 : -1;
-ball.vx = direction * 4.5 + p.vx * 0.2;
-ball.vy = -10;
-ball.x += direction * 8;
-abilityEffect(p, "SET");
+  if (p.setCooldown > 0 || !canHit(p) || ballDistance(p) > 105) return;
+  p.setCooldown = 35;
+  const dir = p.side === 0 ? 1 : -1, S = SPORTS[sport];
+  registerHit(p);
+  if (sport === "tennis") {
+    const vx = 9.5;
+    ball.vy = clearNetVy(vx, -1, 12, 0.07);
+    ball.vx = dir * vx + p.vx * 0.15;
+    ball.slice = true;
+  } else {
+    ball.vx = dir * S.setV[0] + p.vx * 0.2;
+    ball.vy = sport === "volleyball" ? -Math.min(-S.setV[1], Math.sqrt(0.5 * Math.max(ball.y - 30, 25))) : S.setV[1];
+  }
+  ball.x += dir * 8;
+  abilityEffect(p, S.setName);
 }
 
-// SPIKE
-function spikeBall(p) {
-if (p.spikeCooldown > 0) return;
-if (serveInProgress) return;
-if (!ballOnOwnSide(p)) return;
-if (ballDistance(p) > 115) return;
-if (p.y >= ground - 62) return;
+// Revision tip: repeat difficult topics at spaced intervals.
+function spikeBall(p, power = 1) {
+  if (p.spikeCooldown > 0 || !canHit(p) || ballDistance(p) > 115) return;
+  const air = p.y < ground - 62, dir = p.side === 0 ? 1 : -1;
+  let vx, vy, label;
+  if (sport === "volleyball") {
+    if (!air) return;
+    vx = dir * 9; vy = clearNetVy(9, 11, 8, 0.125); label = "SPIKE";
+  } else if (sport === "badminton") {
+    if (power >= 0.5 && !air) return;
 
-p.spikeCooldown = 50;
-const direction = p.side === 0 ? 1 : -1;
-ball.vx = direction * 9 + p.vx * 0.2;
-ball.vy = 11;
-ball.x += direction * 12;
-abilityEffect(p, "SPIKE");
-createParticles(ball.x, ball.y, "#ffd166", 18);
+    const deg = power < 0.5 ? 60 - 52 * (power / 0.5) : 8 - 66 * ((power - 0.5) / 0.5);
+    const a = deg * Math.PI / 180;
+    const sp = power < 0.5 ? 15 + 2.5 * (power / 0.5) : 17.5 + 9.5 * ((power - 0.5) / 0.5);
+    vx = dir * Math.cos(a) * sp; vy = -Math.sin(a) * sp;
+    label = power < 0.5 ? "CLEAR" : "SMASH " + Math.round(power * 100) + "%";
+  } else {
+    if (air && ball.y < netTop - 30) { registerHit(p); vx = dir * 11; vy = clearNetVy(11, 9, 6, 0.125); label = "SMASH"; }
+    else { registerHit(p); vx = dir * 14; vy = clearNetVy(14, -1, 10, 0.125); label = "DRIVE"; }
+  }
+  if (sport !== "tennis") registerHit(p);
+  p.spikeCooldown = 50;
+  ball.vx = vx + p.vx * 0.2; ball.vy = vy;
+  ball.x += dir * 12;
+  abilityEffect(p, label);
+  createParticles(ball.x, ball.y, "#ffd166", 18);
 }
 
-// PLAYER MOVEMENT
+// Glossary: definitions to memorise for the test.
 function movePlayers() {
-players.forEach(p => {
-p.setCooldown = Math.max(0, p.setCooldown - 1);
-p.spikeCooldown = Math.max(0, p.spikeCooldown - 1);
-p.effectTimer = Math.max(0, p.effectTimer - 1);
-if (p.effectTimer === 0) p.effect = "";
+  const S = SPORTS[sport];
+  players.forEach(p => {
+    const n = p.in;
+    p.setCooldown = Math.max(0, p.setCooldown - 1);
+    p.spikeCooldown = Math.max(0, p.spikeCooldown - 1);
+    p.effectTimer = Math.max(0, p.effectTimer - 1);
+    if (p.effectTimer === 0) p.effect = "";
 
-if (pressed[p.slide]) slide(p);
-if (pressed[p.set]) setBall(p);
-if (pressed[p.spike]) spikeBall(p);
+    if (n.slide) slide(p);
+    if (n.set) setBall(p);
 
-const speed = 5;
+    if (sport === "badminton") {
 
-if (p.slideTimer > 0) {
-p.slideTimer--;
-} else {
-if (keys[p.left]) p.x -= speed;
-if (keys[p.right]) p.x += speed;
+      if (n.spike && p.spikeCooldown === 0) { p.charging = true; p.charge = 0; }
+      if (p.charging) {
+        if (n.spikeHeld) p.charge = Math.min(1, p.charge + 1 / 40);
+        else { p.charging = false; spikeBall(p, p.charge); p.charge = 0; }
+      }
+    } else if (n.spike) spikeBall(p, 1);
+
+    if (p.slideTimer > 0) p.slideTimer--;
+    else { if (n.left) p.x -= 5; if (n.right) p.x += 5; }
+
+    if (n.jump && p.y >= ground - 60) { p.vy = -S.jump; p.slideTimer = 0; }
+
+    p.vy += 0.55;
+    p.y += p.vy;
+    if (p.y > ground - 60) { p.y = ground - 60; p.vy = 0; }
+
+    p.x = Math.max(25, Math.min(875, p.x));
+    if (p.side === 0) p.x = Math.min(p.x, netX - 30); else p.x = Math.max(p.x, netX + 30);
+
+    if (p.slideTimer > 0) { p.x += p.vx; p.vx *= 0.88; } else p.vx = 0;
+  });
 }
 
-if (pressed[p.jump] && p.y >= ground - 60) {
-p.vy = -13;
-p.slideTimer = 0;
-}
-
-p.vy += 0.55;
-p.y += p.vy;
-
-if (p.y > ground - 60) { p.y = ground - 60; p.vy = 0; }
-
-p.x = Math.max(25, Math.min(875, p.x));
-
-if (p.side === 0) p.x = Math.min(p.x, netX - 30);
-else p.x = Math.max(p.x, netX + 30);
-
-if (p.slideTimer > 0) {
-p.x += p.vx;
-p.vx *= 0.88;
-} else {
-p.vx = 0;
-}
-});
-}
-
-// SERVE POINT
-function awardServePoint(winnerSide) {
-if (winnerSide === 0) score1++; else score2++;
-updateScore();
-
-if ((score1 >= 10 || score2 >= 10) && Math.abs(score1 - score2) >= 2) gameOver = true;
-
-restartBall(winnerSide);
-}
-
-// BALL COLLISION
+// Study schedule: break the reading into short sessions.
 function collideBall() {
-for (let i = 0; i < players.length; i++) {
-const p = players[i];
-const dx = ball.x - p.x;
-const dy = ball.y - (p.y - 10);
-const dist = Math.hypot(dx, dy);
-const playerRadius = p.slideTimer > 0 ? 32 : p.radius;
-const minDist = ball.r + playerRadius;
-const touching = dist < minDist && dist > 0;
+  for (let i = 0; i < players.length; i++) {
+    const p = players[i];
+    const dx = ball.x - p.x, dy = ball.y - (p.y - 10);
+    const dist = Math.hypot(dx, dy);
+    const minDist = ball.r + (p.slideTimer > 0 ? 32 : p.radius);
 
-if (!touching) { playerTouchingBall[i] = false; continue; }
-if (playerTouchingBall[i]) continue;
-playerTouchingBall[i] = true;
+    if (!(dist < minDist && dist > 0)) { playerTouchingBall[i] = false; continue; }
+    if (playerTouchingBall[i]) continue;
+    playerTouchingBall[i] = true;
 
-if (serveInProgress) {
-if (!serveHit && p.side !== servingSide) { awardServePoint(servingSide); return; }
+    const dir = p.side === 0 ? 1 : -1, S = SPORTS[sport];
 
-if (!serveHit && p.side === servingSide) {
-serveHit = true;
-servePlayerIndex = i;
-ball.vx = p.side === 0 ? 9 : -9;
-ball.vy = -10;
-const nx = dx / dist, ny = dy / dist;
-ball.x = p.x + nx * minDist;
-ball.y = p.y - 10 + ny * minDist;
-createParticles(ball.x, ball.y, p.color, 5);
-return;
+    if (serveInProgress) {
+      if (!serveHit && p.side !== servingSide) { awardPoint(servingSide); return; }
+
+      if (!serveHit && p.side === servingSide) {
+        serveHit = true; servePlayerIndex = i;
+        lastHitSide = p.side; ball.bnc = 0;
+        if (sport === "tennis") { ball.vx = dir * S.serve[0]; ball.vy = clearNetVy(S.serve[0], 2, 12, 0.125); }
+        else { ball.vx = dir * S.serve[0]; ball.vy = S.serve[1]; }
+        const nx = dx / dist, ny = dy / dist;
+        ball.x = p.x + nx * minDist; ball.y = p.y - 10 + ny * minDist;
+        createParticles(ball.x, ball.y, p.color, 5);
+        return;
+      }
+      if (serveHit && p.side === servingSide) { awardPoint(p.side === 0 ? 1 : 0); return; }
+      if (p.side !== servingSide) serveInProgress = false;
+    }
+
+    const nx = dx / dist, ny = dy / dist;
+    ball.x = p.x + nx * minDist; ball.y = p.y - 10 + ny * minDist;
+    registerHit(p);
+
+    if (sport === "tennis") {
+
+      ball.vx = dir * 8 + p.vx * 0.3;
+      ball.vy = clearNetVy(8, -3, 10, 0.125);
+    } else {
+      const speed = Math.hypot(ball.vx, ball.vy);
+      ball.vx = nx * Math.max(speed, 6) + p.vx * 0.3;
+      ball.vy = ny * Math.max(speed, 6) - 1;
+    }
+    createParticles(ball.x, ball.y, p.color, 5);
+  }
 }
 
-if (serveHit && p.side === servingSide) {
-awardServePoint(p.side === 0 ? 1 : 0);
-return;
+// Mnemonic to help remember this section.
+function groundContact() {
+  const side = ball.x < netX ? 0 : 1;
+  if (sport !== "tennis" || lastHitSide < 0) { awardPoint(1 - side); return; }
+  if (ball.bnc === 0) {
+    const out = ball.x < 25 || ball.x > WIDTH - 25;
+    if (side === lastHitSide || out) { awardPoint(1 - lastHitSide); return; }
+    ball.bnc = 1;
+    const sl = ball.slice;
+    ball.y = ground - ball.r;
+    ball.vy = -Math.max(Math.abs(ball.vy) * (sl ? 0.45 : 0.78), sl ? 3 : 5.5);
+    ball.vx *= sl ? 1.03 : 0.93;
+    createParticles(ball.x, ground, "#ffffff", 7);
+  } else {
+    awardPoint(lastHitSide);
+  }
 }
 
-if (p.side !== servingSide) serveInProgress = false;
-}
-
-const nx = dx / dist, ny = dy / dist;
-ball.x = p.x + nx * minDist;
-ball.y = p.y - 10 + ny * minDist;
-
-const speed = Math.hypot(ball.vx, ball.vy);
-ball.vx = nx * Math.max(speed, 6) + p.vx * 0.3;
-ball.vy = ny * Math.max(speed, 6) - 1;
-
-createParticles(ball.x, ball.y, p.color, 5);
-}
-}
-
-// BALL PHYSICS
+// Past-paper style question for self-assessment.
 function updateBall() {
-if (ball.vx === 0 && ball.vy === 0) { collideBall(); return; }
+  if (ball.vx === 0 && ball.vy === 0) { collideBall(); return; }
+  const S = SPORTS[sport];
 
-ball.vy += 0.25;
-ball.x += ball.vx;
-ball.y += ball.vy;
+  ball.vy += S.g * (ball.slice ? 0.55 : 1);
+  if (S.k) { const f = S.k * Math.hypot(ball.vx, ball.vy); ball.vx -= ball.vx * f; ball.vy -= ball.vy * f; }
+  ball.x += ball.vx; ball.y += ball.vy;
 
-if (ball.x < ball.r) { ball.x = ball.r; ball.vx *= -0.85; }
-if (ball.x > WIDTH - ball.r) { ball.x = WIDTH - ball.r; ball.vx *= -0.85; }
-if (ball.y < ball.r) { ball.y = ball.r; ball.vy *= -0.85; }
+  if (ball.x < ball.r) { ball.x = ball.r; ball.vx *= -0.85; }
+  if (ball.x > WIDTH - ball.r) { ball.x = WIDTH - ball.r; ball.vx *= -0.85; }
+  if (ball.y < ball.r) { ball.y = ball.r; ball.vy *= -0.85; }
 
-if (Math.abs(ball.x - netX) < ball.r + 5 && ball.y + ball.r > 315) {
-if (ball.y < 315 && ball.vy > 0) {
-ball.y = 315 - ball.r;
-ball.vy *= -0.6;
-} else {
-ball.x = ball.x < netX ? netX - 5 - ball.r : netX + 5 + ball.r;
-ball.vx *= -0.8;
-}
-}
+  if (Math.abs(ball.x - netX) < ball.r + 5 && ball.y + ball.r > netTop) {
+    if (ball.y < netTop && ball.vy > 0) { ball.y = netTop - ball.r; ball.vy *= -0.6; }
+    else { ball.x = ball.x < netX ? netX - 5 - ball.r : netX + 5 + ball.r; ball.vx *= -0.8; }
+  }
 
-collideBall();
-
-if (ball.y + ball.r >= ground) {
-if (ball.x < netX) { score2++; restartBall(1); }
-else { score1++; restartBall(0); }
-
-updateScore();
-
-if ((score1 >= 10 || score2 >= 10) && Math.abs(score1 - score2) >= 2) gameOver = true;
+  collideBall();
+  if (ball.y + ball.r >= ground) groundContact();
+  if (!S.k) ball.vx *= 0.999;
 }
 
-ball.vx *= 0.999;
-}
-
+// Cross-reference with the textbook chapter.
 function updateParticles() {
-particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life--; });
-particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life--; });
+  particles = particles.filter(p => p.life > 0);
 }
 
+// Group study: compare answers with classmates.
 function drawParticles() {
-particles.forEach(p => {
-ctx.globalAlpha = p.life / 30;
-ctx.fillStyle = p.color;
-ctx.beginPath();
-ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-ctx.fill();
-});
-ctx.globalAlpha = 1;
+  particles.forEach(p => {
+    ctx.globalAlpha = Math.max(0, p.life / 30);
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
 }
 
-// COURT
+// Review the key terms before moving on to the next chapter.
 function drawCourt() {
-ctx.fillStyle = THEMES[sport].floor;
-ctx.fillRect(0, ground, WIDTH, 55);
+  ctx.fillStyle = THEMES[sport].floor;
+  ctx.fillRect(0, ground, WIDTH, 55);
+  ctx.strokeStyle = "white"; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(0, ground); ctx.lineTo(WIDTH, ground); ctx.stroke();
 
-ctx.strokeStyle = "white";
-ctx.lineWidth = 4;
-ctx.beginPath();
-ctx.moveTo(0, ground);
-ctx.lineTo(WIDTH, ground);
-ctx.stroke();
-
-ctx.fillStyle = "#eeeeee";
-ctx.fillRect(netX - 5, 315, 10, 130);
-
-ctx.strokeStyle = "#ffffff";
-ctx.lineWidth = 2;
-for (let y = 320; y < 445; y += 12) {
-ctx.beginPath();
-ctx.moveTo(netX - 17, y);
-ctx.lineTo(netX + 17, y);
-ctx.stroke();
+  const h = ground - netTop;
+  ctx.fillStyle = "#333"; ctx.fillRect(netX - 7, netTop - 8, 14, h + 8);
+  ctx.fillStyle = "#e9e9e9"; ctx.fillRect(netX - 5, netTop, 10, h);
+  ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+  for (let y = netTop + 8; y < ground; y += 12) { ctx.beginPath(); ctx.moveTo(netX - 17, y); ctx.lineTo(netX + 17, y); ctx.stroke(); }
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(netX - 17, netTop, 34, 5);
 }
 
-ctx.fillStyle = "#333";
-ctx.fillRect(netX - 7, 305, 14, 140);
+// Flashcards: quiz yourself, then check the answer.
+function drawArms(p) {
+  const d = p.side === 0 ? 1 : -1, kind = (p.effect || "").split(" ")[0], t = p.effectTimer / 30;
+  const sx = p.x, sy = p.y - 14;
+  let hands;
+  if (p.effectTimer > 0 && kind === "SET") hands = [[sx - 14, sy - 40], [sx + 14, sy - 40]];
+  else if (p.effectTimer > 0 && kind === "SPIKE") {
+    const a = -2.3 + (1 - t) * 2.7;
+    hands = [[sx + d * Math.cos(a) * 42, sy + Math.sin(a) * 42], [sx - d * 12, sy + 16]];
+  } else hands = [[sx - 17, sy + 18], [sx + 17, sy + 18]];
+  ctx.strokeStyle = p.color; ctx.lineWidth = 7; ctx.lineCap = "round";
+  hands.forEach((h, i) => {
+    ctx.beginPath(); ctx.moveTo(sx + (i === 0 ? -9 : 9), sy + 2); ctx.lineTo(h[0], h[1]); ctx.stroke();
+  });
+  ctx.fillStyle = "#fff";
+  hands.forEach(h => { ctx.beginPath(); ctx.arc(h[0], h[1], 4, 0, Math.PI * 2); ctx.fill(); });
 }
 
-// PLAYER DRAWING
+// Summary of this topic for exam revision.
 function drawPlayer(p) {
-if (p.slideTimer > 0) {
-ctx.fillStyle = p.color;
-ctx.beginPath();
-ctx.ellipse(p.x, p.y + 12, 35, 15, 0, 0, Math.PI * 2);
-ctx.fill();
-} else {
-ctx.fillStyle = p.color;
-ctx.beginPath();
-ctx.arc(p.x, p.y - 10, p.radius, 0, Math.PI * 2);
-ctx.fill();
+  if (p.slideTimer > 0) {
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + 12, 35, 15, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y - 10, p.radius, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "white";
+    ctx.beginPath(); ctx.arc(p.x + (p.side === 0 ? 8 : -8), p.y - 16, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = p.color; ctx.lineWidth = 8; ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(p.x - 8, p.y + 12); ctx.lineTo(p.x - 12, p.y + 28);
+    ctx.moveTo(p.x + 8, p.y + 12); ctx.lineTo(p.x + 12, p.y + 28);
+    ctx.stroke();
+    if (sport === "volleyball") drawArms(p);
+  }
 
-ctx.fillStyle = "white";
-ctx.beginPath();
-ctx.arc(p.x + 8, p.y - 16, 4, 0, Math.PI * 2);
-ctx.fill();
+  if (sport !== "volleyball") drawRacquet(p);
 
-ctx.strokeStyle = p.color;
-ctx.lineWidth = 8;
-ctx.lineCap = "round";
-ctx.beginPath();
-ctx.moveTo(p.x - 8, p.y + 12);
-ctx.lineTo(p.x - 12, p.y + 28);
-ctx.moveTo(p.x + 8, p.y + 12);
-ctx.lineTo(p.x + 12, p.y + 28);
-ctx.stroke();
+  if (gameMode === 2) {
+    ctx.fillStyle = "white"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center";
+    ctx.fillText(players.indexOf(p) + 1, p.x, p.y - 35);
+  }
+
+  if (p.charging) {
+    const w = 44, bx = p.x - w / 2, by = p.y - 92;
+    ctx.fillStyle = "#1d1d1b"; ctx.fillRect(bx - 2, by - 2, w + 4, 10);
+    ctx.fillStyle = p.charge < 0.5 ? "#f2b134" : (p.charge < 0.95 ? "#e8782a" : "#d9381e");
+    ctx.fillRect(bx, by, w * p.charge, 6);
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(bx + w * 0.5 - 1, by - 3, 2, 12);
+    ctx.fillStyle = "#1d1d1b"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center";
+    ctx.fillText((p.charge < 0.5 ? "CLEAR " : "SMASH ") + Math.round(p.charge * 100) + "%", p.x, by - 6);
+  }
+
+  if (p.effectTimer > 0) {
+    ctx.fillStyle = "#ffd166"; ctx.font = "bold 18px Arial"; ctx.textAlign = "center";
+    ctx.fillText(p.effect, p.x, p.y - 55);
+  }
 }
 
-if (sport !== "volleyball") drawRacquet(p);
-
-if (gameMode === 2) {
-ctx.fillStyle = "white";
-ctx.font = "bold 13px Arial";
-ctx.textAlign = "center";
-ctx.fillText(players.indexOf(p) + 1, p.x, p.y - 35);
-}
-
-if (p.effectTimer > 0) {
-ctx.fillStyle = "#ffd166";
-ctx.font = "bold 18px Arial";
-ctx.textAlign = "center";
-ctx.fillText(p.effect, p.x, p.y - 55);
-}
-}
-
-// RACQUET
+// Practice questions - attempt before reading the solution.
 function drawRacquet(p) {
-const d = p.side === 0 ? 1 : -1;
-let a = -1.0;
-if (p.slideTimer > 0) a = 0.1;
-else if (p.effectTimer > 0) a = p.effect === "SPIKE" ? 0.6 : -1.5;
-const theta = d === 1 ? a : Math.PI - a;
-const sx = p.x + d * 14, sy = p.y - 2;
-const handle = 16;
-const hx = sx + Math.cos(theta) * handle, hy = sy + Math.sin(theta) * handle;
-const big = sport === "tennis";
-const rx = big ? 18 : 15, ry = big ? 13 : 10;
-const cx = hx + Math.cos(theta) * rx, cy = hy + Math.sin(theta) * ry;
+  const d = p.side === 0 ? 1 : -1, kind = (p.effect || "").split(" ")[0];
+  let a = -1.0;
+  if (p.slideTimer > 0) a = 0.1;
+  else if (p.effectTimer > 0) a = ["SPIKE","SMASH","DRIVE"].includes(kind) ? 0.6 : (kind === "SLICE" ? 0.15 : -1.5);
+  const theta = d === 1 ? a : Math.PI - a;
+  const sx = p.x + d * 14, sy = p.y - 2, handle = 16;
+  const hx = sx + Math.cos(theta) * handle, hy = sy + Math.sin(theta) * handle;
+  const big = sport === "tennis", rx = big ? 18 : 15, ry = big ? 13 : 10;
+  const cx = hx + Math.cos(theta) * rx, cy = hy + Math.sin(theta) * rx;
 
-ctx.lineCap = "round";
-ctx.strokeStyle = "#222";
-ctx.lineWidth = 4;
-ctx.beginPath();
-ctx.moveTo(sx, sy);
-ctx.lineTo(hx, hy);
-ctx.stroke();
+  ctx.lineCap = "round"; ctx.strokeStyle = "#222"; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(hx, hy); ctx.stroke();
 
-ctx.save();
-ctx.translate(cx, cy);
-ctx.rotate(theta);
-ctx.fillStyle = "rgba(255,255,255,0.25)";
-ctx.beginPath();
-ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-ctx.fill();
-ctx.strokeStyle = "rgba(40,40,40,0.55)";
-ctx.lineWidth = 1;
-ctx.beginPath();
-for (let x = -rx + 5; x < rx - 3; x += 5) { ctx.moveTo(x, -ry + 2); ctx.lineTo(x, ry - 2); }
-for (let y = -ry + 4; y < ry - 2; y += 5) { ctx.moveTo(-rx + 3, y); ctx.lineTo(rx - 3, y); }
-ctx.stroke();
-ctx.strokeStyle = big ? "#222" : "#555";
-ctx.lineWidth = 3;
-ctx.beginPath();
-ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-ctx.stroke();
-ctx.restore();
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(theta);
+  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "rgba(40,40,40,0.55)"; ctx.lineWidth = 1; ctx.beginPath();
+  for (let x = -rx + 5; x < rx - 3; x += 5) { ctx.moveTo(x, -ry + 2); ctx.lineTo(x, ry - 2); }
+  for (let y = -ry + 4; y < ry - 2; y += 5) { ctx.moveTo(-rx + 3, y); ctx.lineTo(rx - 3, y); }
+  ctx.stroke();
+  ctx.strokeStyle = big ? "#222" : "#555"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
 }
 
-// TENNIS BALL
+// Highlight the main idea of each section in your notes.
 function drawTennisBall() {
-ctx.fillStyle = "#c8f03c";
-ctx.beginPath();
-ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-ctx.fill();
-
-ctx.strokeStyle = "white";
-ctx.lineWidth = 2;
-ctx.beginPath();
-ctx.arc(ball.x - ball.r * 1.15, ball.y, ball.r * 0.95, -0.9, 0.9);
-ctx.stroke();
-ctx.beginPath();
-ctx.arc(ball.x + ball.r * 1.15, ball.y, ball.r * 0.95, Math.PI - 0.9, Math.PI + 0.9);
-ctx.stroke();
-
-ctx.strokeStyle = "#6b8e0a";
-ctx.beginPath();
-ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-ctx.stroke();
+  if (ball.slice) {
+    ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 2;
+    const sgn = ball.vx >= 0 ? -1 : 1;
+    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(ball.x + sgn * 18, ball.y + i * 6); ctx.lineTo(ball.x + sgn * 34, ball.y + i * 6); ctx.stroke(); }
+  }
+  ctx.fillStyle = "#c8f03c";
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "white"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(ball.x - ball.r * 1.15, ball.y, ball.r * 0.95, -0.9, 0.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(ball.x + ball.r * 1.15, ball.y, ball.r * 0.95, Math.PI - 0.9, Math.PI + 0.9); ctx.stroke();
+  ctx.strokeStyle = "#6b8e0a";
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.stroke();
 }
 
-// BIRDIE
+// Revision tip: repeat difficult topics at spaced intervals.
 function drawBirdie() {
-const moving = Math.hypot(ball.vx, ball.vy) > 0.5;
-const ang = moving ? Math.atan2(ball.vy, ball.vx) : Math.PI / 2;
-
-ctx.save();
-ctx.translate(ball.x, ball.y);
-ctx.rotate(ang);
-
-ctx.fillStyle = "#ffffff";
-ctx.strokeStyle = "#8a8a8a";
-ctx.lineWidth = 1.5;
-ctx.beginPath();
-ctx.moveTo(4, -5);
-ctx.lineTo(-17, -13);
-ctx.lineTo(-17, 13);
-ctx.lineTo(4, 5);
-ctx.closePath();
-ctx.fill();
-ctx.stroke();
-
-ctx.beginPath();
-for (let y = -9; y <= 9; y += 4.5) { ctx.moveTo(3, y * 0.5); ctx.lineTo(-17, y * 1.4); }
-ctx.stroke();
-
-ctx.strokeStyle = "#8a8a8a";
-ctx.beginPath();
-ctx.moveTo(-10, -10.5);
-ctx.lineTo(-10, 10.5);
-ctx.stroke();
-
-ctx.fillStyle = "#e8c27a";
-ctx.strokeStyle = "#7a5a20";
-ctx.beginPath();
-ctx.arc(8, 0, 7, 0, Math.PI * 2);
-ctx.fill();
-ctx.stroke();
-
-ctx.restore();
+  const moving = Math.hypot(ball.vx, ball.vy) > 0.5;
+  const ang = moving ? Math.atan2(ball.vy, ball.vx) : Math.PI / 2;
+  ctx.save(); ctx.translate(ball.x, ball.y); ctx.rotate(ang);
+  ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#8a8a8a"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(4, -5); ctx.lineTo(-17, -13); ctx.lineTo(-17, 13); ctx.lineTo(4, 5); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  for (let y = -9; y <= 9; y += 4.5) { ctx.moveTo(3, y * 0.5); ctx.lineTo(-17, y * 1.4); }
+  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-10, -10.5); ctx.lineTo(-10, 10.5); ctx.stroke();
+  ctx.fillStyle = "#e8c27a"; ctx.strokeStyle = "#7a5a20";
+  ctx.beginPath(); ctx.arc(8, 0, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.restore();
 }
 
+// Glossary: definitions to memorise for the test.
 function drawBall() {
-if (sport === "tennis") { drawTennisBall(); return; }
-if (sport === "badminton") { drawBirdie(); return; }
-
-ctx.fillStyle = "#ffffff";
-ctx.beginPath();
-ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-ctx.fill();
-
-ctx.strokeStyle = "#222";
-ctx.lineWidth = 2;
-ctx.beginPath();
-ctx.arc(ball.x, ball.y, ball.r - 5, 0, Math.PI * 2);
-ctx.stroke();
-
-ctx.beginPath();
-ctx.moveTo(ball.x - ball.r, ball.y);
-ctx.lineTo(ball.x + ball.r, ball.y);
-ctx.moveTo(ball.x, ball.y - ball.r);
-ctx.lineTo(ball.x, ball.y + ball.r);
-ctx.stroke();
+  if (sport === "tennis") { drawTennisBall(); return; }
+  if (sport === "badminton") { drawBirdie(); return; }
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#222"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r - 5, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(ball.x - ball.r, ball.y); ctx.lineTo(ball.x + ball.r, ball.y);
+  ctx.moveTo(ball.x, ball.y - ball.r); ctx.lineTo(ball.x, ball.y + ball.r);
+  ctx.stroke();
 }
 
-// GAME OVER
+// Study schedule: break the reading into short sessions.
+function drawCues() {
+  if (!gameStarted || gameOver) return;
+  const S = SPORTS[sport];
+  let canSet = false, canSpike = false;
+  for (const p of players) {
+    if (!canHit(p)) continue;
+    const d = ballDistance(p);
+    if (d < 105) canSet = true;
+    if (d < 115 && (sport === "tennis" || p.y < ground - 62)) canSpike = true;
+  }
+  if (canSet || canSpike) {
+    const col = canSpike ? "#e8382a" : "#f2b134";
+    const rad = 26 + Math.sin(performance.now() / 110) * 2.5;
+    ctx.save();
+    ctx.setLineDash([6, 5]); ctx.strokeStyle = col; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, rad, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col; ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
+    ctx.fillText(canSpike ? S.spikeName : S.setName, ball.x, ball.y - rad - 6);
+    ctx.restore();
+  }
+  if (sport === "tennis" && ball.bnc > 0) {
+    ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, 23, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  for (const p of players) {
+    if (p.effectTimer < 22) continue;
+    const kind = (p.effect || "").split(" ")[0];
+    const strong = ["SPIKE","SMASH","DRIVE"].includes(kind);
+    if (!strong && !["SET","DROP","SLICE","CLEAR"].includes(kind)) continue;
+    const k = (p.effectTimer - 21) / 9;
+    ctx.save();
+    ctx.globalAlpha = k; ctx.strokeStyle = strong ? "#e8382a" : "#f2b134"; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, 16 + (1 - k) * 34, 0, Math.PI * 2); ctx.stroke();
+    if (strong) {
+      const sp = Math.hypot(ball.vx, ball.vy) || 1, ux = ball.vx / sp, uy = ball.vy / sp;
+      ctx.lineWidth = 3;
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(ball.x - ux * 22 - uy * i * 7, ball.y - uy * 22 + ux * i * 7);
+        ctx.lineTo(ball.x - ux * 52 - uy * i * 7, ball.y - uy * 52 + ux * i * 7);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+}
+
+// Mnemonic to help remember this section.
 function drawGameOver() {
-ctx.fillStyle = "rgba(0,0,0,.75)";
-ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-ctx.fillStyle = "#ffd166";
-ctx.font = "bold 48px Arial";
-ctx.textAlign = "center";
-ctx.fillText(score1 > score2 ? "BLUE WINS!" : "RED WINS!", WIDTH / 2, 220);
-
-ctx.fillStyle = "white";
-ctx.font = "25px Arial";
-ctx.fillText(netMode === "guest" ? "Waiting for host to restart..." : "Click RESTART GAME to play again", WIDTH / 2, 275);
+  ctx.fillStyle = "rgba(0,0,0,.75)"; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillStyle = "#ffd166"; ctx.font = "bold 48px Arial"; ctx.textAlign = "center";
+  ctx.fillText(score1 > score2 ? "BLUE WINS!" : "RED WINS!", WIDTH / 2, 220);
+  ctx.fillStyle = "white"; ctx.font = "25px Arial";
+  ctx.fillText(netMode === "guest" ? "Waiting for host to restart..." : "Click RESTART GAME to play again", WIDTH / 2, 275);
 }
 
+// Past-paper style question for self-assessment.
 function draw() {
-ctx.clearRect(0, 0, WIDTH, HEIGHT);
-drawCourt();
-players.forEach(drawPlayer);
-drawBall();
-drawParticles();
-if (gameOver) drawGameOver();
+  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+  drawCourt();
+  players.forEach(drawPlayer);
+  drawBall();
+  drawCues();
+  drawParticles();
+  if (gameOver) drawGameOver();
 }
 
-// GAME LOOP (fixed 60 Hz timestep)
 const STEP = 1000 / 60;
 let lastTime = 0, acc = 0;
 
+// Cross-reference with the textbook chapter.
 function loop(t = 0) {
-acc += Math.min(t - lastTime, 100);
-lastTime = t;
-
-while (acc >= STEP) {
-if (gameStarted) {
-if (netMode === "guest") {
-sendGuestInput();
-} else {
-if (!gameOver) {
-applyHostNetworkInputs();
-botControl();
-movePlayers();
-updateBall();
-updateParticles();
+  acc += Math.min(t - lastTime, 100);
+  lastTime = t;
+  while (acc >= STEP) {
+    if (gameStarted) {
+      if (netMode === "guest") sendGuestInput();
+      else {
+        if (!gameOver) {
+          gatherInputs();
+          botControl();
+          movePlayers();
+          updateBall();
+          updateParticles();
+        }
+        broadcastGameState();
+      }
+    }
+    for (const key in pressed) delete pressed[key];
+    acc -= STEP;
+  }
+  draw();
+  requestAnimationFrame(loop);
 }
-broadcastGameState();
-}
-}
-for (const key in pressed) delete pressed[key];
-acc -= STEP;
-}
-
-draw();
-requestAnimationFrame(loop);
-}
-
 requestAnimationFrame(loop);
 </script>
 </body>
